@@ -14,7 +14,7 @@ public interface Game {
     void comprarCarta(String nome);
 
     // Retorna a pontuação do jogador
-    int obterPontuacao(String nome);
+
 
     // Finaliza o jogo e determina o vencedor
     String finalizarJogo();

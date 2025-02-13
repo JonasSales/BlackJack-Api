@@ -8,6 +8,10 @@ public class Player {
     private String nome;
     private List<Card> mao = new ArrayList<>();
 
+    public Player() {
+
+    }
+
     public Player(String nome) {
         this.nome = nome;
     }

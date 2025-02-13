@@ -12,7 +12,22 @@ public class BlackjackGame implements Game {
 
     private List<Player> jogadores;
     private Deck deck;
-    private Player crupie;
+
+    public List<Player> getJogadores() {
+        return jogadores;
+    }
+
+    public void setJogadores(List<Player> jogadores) {
+        this.jogadores = jogadores;
+    }
+
+    public Deck getDeck() {
+        return deck;
+    }
+
+    public void setDeck(Deck deck) {
+        this.deck = deck;
+    }
 
     @Override
     public void iniciarJogo(List<String> nomes) {
@@ -21,10 +36,12 @@ public class BlackjackGame implements Game {
         deck.embaralhar();
 
         jogadores = new ArrayList<>();
+        // Adiciona jogadores à lista
         for (String nome : nomes) {
             jogadores.add(new Player(nome));
         }
-        crupie = new Player("Crupiê");
+        // Adiciona o crupiê à lista de jogadores
+        jogadores.add(new Player("Crupiê"));
     }
 
     @Override
@@ -33,8 +50,6 @@ public class BlackjackGame implements Game {
             jogador.adicionarCarta(deck.distribuirCarta());
             jogador.adicionarCarta(deck.distribuirCarta());
         }
-        crupie.adicionarCarta(deck.distribuirCarta());
-        crupie.adicionarCarta(deck.distribuirCarta());
     }
 
     @Override
@@ -46,80 +61,65 @@ public class BlackjackGame implements Game {
         }
     }
 
-    @Override
-    public int obterPontuacao(String nome) {
+
+    public List<String> obterPontuacoes(List<Player> jogadores) {
+        List<String> pontuacoes = new ArrayList<>();
         for (Player jogador : jogadores) {
-            if (jogador.getNome().equals(nome)) {
-                return calcularPontuacao(jogador); // Chama o método para calcular a pontuação
-            }
+            int pontos = calcularPontuacao(jogador); // Calcula a pontuação do jogador
+            pontuacoes.add(jogador.getNome() + ": " + pontos); // Adiciona a pontuação à lista de respostas
         }
-        return 0; // Retorna 0 se o jogador não for encontrado
+        return pontuacoes; // Retorna a lista de pontuações de todos os jogadores
     }
 
     @Override
     public String finalizarJogo() {
         int maiorPontuacao = 0;
-        Player vencedor = null;
+        Player vencedor = null; // Inicializa com null para o caso de empate
         boolean algumBlackjack = false;
+        Player crupie = jogadores.getLast();
 
         // Verifica se algum jogador tem Blackjack
         for (Player jogador : jogadores) {
             if (calcularPontuacao(jogador) == 21 && jogador.getMao().size() == 2) {
+                if (algumBlackjack) {
+                    vencedor = null; // Empate se houver mais de um Blackjack
+                } else {
+                    vencedor = jogador; // Primeiro jogador com Blackjack é o vencedor
+                    return "Jogador " + vencedor.getNome() + " venceu com Blackjack!";
+                }
                 algumBlackjack = true;
             }
         }
 
-        // Verifica se algum jogador tem Blackjack e retorna o vencedor
-        for (Player jogador : jogadores) {
-            if (calcularPontuacao(jogador) == 21 && jogador.getMao().size() == 2) {
-                if (!algumBlackjack) {
-                    return "O vencedor é: " + jogador.getNome() + " com Blackjack!";
-                }
-                // Se mais de um jogador tem Blackjack, é empate (push)
-                vencedor = null;
-            }
-        }
-
-        // Se o crupiê não tem Blackjack, ele deve comprar cartas até atingir pelo menos 17 pontos
+        // O crupiê compra cartas até ter pelo menos 17 pontos
         while (calcularPontuacao(crupie) < 17) {
             crupie.adicionarCarta(deck.distribuirCarta());
         }
 
-        // Determina o vencedor com base na pontuação final
+        // Verifica o vencedor baseado na maior pontuação
         for (Player jogador : jogadores) {
             int pontuacao = calcularPontuacao(jogador);
-            if (pontuacao > 21) {
-                continue; // Jogador estourou, não pode ser vencedor
-            }
-
-            if (pontuacao > maiorPontuacao) {
+            if (pontuacao <= 21 && pontuacao > maiorPontuacao) {
                 maiorPontuacao = pontuacao;
                 vencedor = jogador;
             } else if (pontuacao == maiorPontuacao) {
-                // Se ambos tiverem a mesma pontuação, é empate (push)
-                vencedor = null; // Indica empate
+                vencedor = null; // Empate se pontuação for igual
             }
         }
 
-        // Verifica se o crupiê venceu
+        // Verifica se o crupiê é o vencedor
         int pontuacaoCrupie = calcularPontuacao(crupie);
-        if (pontuacaoCrupie <= 21 && maiorPontuacao > pontuacaoCrupie) {
-            vencedor = vencedor;
-        } else if (pontuacaoCrupie == maiorPontuacao) {
-            return "O jogo terminou em empate (push).";
-        } else {
-            return "O crupiê venceu!";
+        if (pontuacaoCrupie <= 21 && pontuacaoCrupie > maiorPontuacao) {
+            return "O vencedor é o Crupiê com " + pontuacaoCrupie + " pontos!";
         }
 
-        if (vencedor != null) {
-            return "O vencedor é: " + vencedor.getNome() + " com " + maiorPontuacao + " pontos!";
-        } else {
-            return "O jogo terminou em empate (push).";
-        }
+        // Retorna o resultado
+        return vencedor != null ? "O vencedor é: " + vencedor.getNome() + " com " + maiorPontuacao + " pontos!" : "O jogo terminou em empate (push).";
     }
 
+
     // Método para calcular a pontuação de um jogador no Blackjack
-    private int calcularPontuacao(Player jogador) {
+    public int calcularPontuacao(Player jogador) {
         int pontos = 0;
         int ases = 0;
 
