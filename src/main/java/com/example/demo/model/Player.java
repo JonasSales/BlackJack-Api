@@ -6,7 +6,7 @@ import java.util.List;
 public class Player {
 
     private String nome;
-    private List<Card> mao =  new ArrayList<Card>();
+    private List<Card> mao = new ArrayList<>();
 
     public Player(String nome) {
         this.nome = nome;
