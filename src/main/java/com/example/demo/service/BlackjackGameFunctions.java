@@ -2,46 +2,48 @@ package com.example.demo.service;
 
 import com.example.demo.model.Card;
 import com.example.demo.model.Deck;
-import com.example.demo.model.Game;
+import com.example.demo.model.GameFunctions;
 import com.example.demo.model.Player;
 
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class BlackjackGame implements Game {
+public class BlackjackGameFunctions implements GameFunctions {
 
-    private List<Player> jogadores;
+    private List<Player> jogadores = new ArrayList<>();
     private Deck deck;
+    private Map<String, Player> mapaJogadores = new HashMap<>();
+
 
     public List<Player> getJogadores() {
         return jogadores;
     }
 
-    public void setJogadores(List<Player> jogadores) {
-        this.jogadores = jogadores;
-    }
 
-    public Deck getDeck() {
+    private Deck getDeck() {
         return deck;
     }
 
-    public void setDeck(Deck deck) {
-        this.deck = deck;
-    }
 
     @Override
     public void iniciarJogo(List<String> nomes) {
         List<Card> baralho = Card.criarBaralho(1);
         deck = new Deck(baralho);
         deck.embaralhar();
-
-        jogadores = new ArrayList<>();
-        // Adiciona jogadores à lista
+        // Adiciona jogadores ao mapa e à lista
         for (String nome : nomes) {
-            jogadores.add(new Player(nome));
+            Player jogador = new Player(nome);
+            jogadores.add(jogador);
+            mapaJogadores.put(nome, jogador);
         }
-        // Adiciona o crupiê à lista de jogadores
-        jogadores.add(new Player("Crupiê"));
+
+        // Adiciona o crupiê
+        Player crupie = new Player("Crupiê");
+        jogadores.add(crupie);
+        mapaJogadores.put("Crupiê", crupie);
     }
 
     @Override
@@ -53,22 +55,13 @@ public class BlackjackGame implements Game {
     }
 
     @Override
-    public void comprarCarta(String nome) {
-        for (Player jogador : jogadores) {
-            if (jogador.getNome().equals(nome)) {
-                jogador.adicionarCarta(deck.distribuirCarta());
-            }
+    public boolean comprarCarta(String nome) {
+        Player jogador = mapaJogadores.get(nome);
+        if (jogador != null && calcularPontuacao(jogador) <= 21) {
+            jogador.adicionarCarta(deck.distribuirCarta());
+            return true;
         }
-    }
-
-
-    public List<String> obterPontuacoes(List<Player> jogadores) {
-        List<String> pontuacoes = new ArrayList<>();
-        for (Player jogador : jogadores) {
-            int pontos = calcularPontuacao(jogador); // Calcula a pontuação do jogador
-            pontuacoes.add(jogador.getNome() + ": " + pontos); // Adiciona a pontuação à lista de respostas
-        }
-        return pontuacoes; // Retorna a lista de pontuações de todos os jogadores
+        return false;
     }
 
     @Override
@@ -91,10 +84,7 @@ public class BlackjackGame implements Game {
             }
         }
 
-        // O crupiê compra cartas até ter pelo menos 17 pontos
-        while (calcularPontuacao(crupie) < 17) {
-            crupie.adicionarCarta(deck.distribuirCarta());
-        }
+
 
         // Verifica o vencedor baseado na maior pontuação
         for (Player jogador : jogadores) {
@@ -112,6 +102,7 @@ public class BlackjackGame implements Game {
         if (pontuacaoCrupie <= 21 && pontuacaoCrupie > maiorPontuacao) {
             return "O vencedor é o Crupiê com " + pontuacaoCrupie + " pontos!";
         }
+
 
         // Retorna o resultado
         return vencedor != null ? "O vencedor é: " + vencedor.getNome() + " com " + maiorPontuacao + " pontos!" : "O jogo terminou em empate (push).";
