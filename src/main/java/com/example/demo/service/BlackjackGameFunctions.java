@@ -31,15 +31,15 @@ public class BlackjackGameFunctions implements GameFunctions {
         deck = new Deck(baralho);
         deck.embaralhar();
 
+        // Adiciona o crupiê
+        Player crupie = new Player("Crupiê");
+        jogadores.add(crupie);
+
         // Adiciona jogadores à lista
         for (String nome : nomes) {
             Player jogador = new Player(nome);
             jogadores.add(jogador);
         }
-
-        // Adiciona o crupiê
-        Player crupie = new Player("Crupiê");
-        jogadores.add(crupie);
 
         // Inicializa o iterador circular
         iterador = jogadores.iterator();
@@ -67,19 +67,13 @@ public class BlackjackGameFunctions implements GameFunctions {
     public String finalizarJogo() {
         int maiorPontuacao = 0;
         Player vencedor = null; // Inicializa com null para o caso de empate
-        boolean algumBlackjack = false;
-        Player crupie = jogadores.getLast(); // O último jogador é o crupiê
+        Player crupie = jogadores.getFirst(); // O primeiro jogador é o crupiê
 
         // Verifica se algum jogador tem Blackjack
         for (Player jogador : jogadores) {
             if (calcularPontuacao(jogador) == 21 && jogador.getMao().size() == 2) {
-                if (algumBlackjack) {
-                    vencedor = null; // Empate se houver mais de um Blackjack
-                } else {
-                    vencedor = jogador; // Primeiro jogador com Blackjack é o vencedor
-                    return "Jogador " + vencedor.getNome() + " venceu com Blackjack!";
-                }
-                algumBlackjack = true;
+                vencedor = jogador; // Primeiro jogador com Blackjack é o vencedor
+                return "Jogador " + vencedor.getNome() + " venceu com Blackjack!";
             }
         }
 
@@ -141,7 +135,8 @@ public class BlackjackGameFunctions implements GameFunctions {
     // Método para retornar o próximo jogador (usando o iterador circular)
     public Player proximoJogador() {
         if (!iterador.hasNext()) {
-            iterador = jogadores.iterator(); // Reinicia quando chega ao fim
+            // Reinicia o iterador quando chegar ao final da lista
+            iterador = jogadores.iterator();
         }
         return iterador.next();
     }

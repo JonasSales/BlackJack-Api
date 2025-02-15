@@ -39,6 +39,7 @@ public class BlackjackController {
                     String cartas = jogador.getMao().stream()
                             .map(carta -> carta.toString()) // Representação das cartas
                             .collect(Collectors.joining(", "));
+
                     // Calculamos a pontuação do jogador
                     int pontos = gameFunctions.calcularPontuacao(jogador); // Chama o método para calcular a pontuação
 
