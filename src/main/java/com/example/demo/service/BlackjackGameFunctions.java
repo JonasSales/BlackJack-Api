@@ -40,7 +40,6 @@ public class BlackjackGameFunctions implements GameFunctions {
             Player jogador = new Player(nome);
             jogadores.add(jogador);
         }
-
         // Inicializa o iterador circular
         iterador = jogadores.iterator();
     }
@@ -56,11 +55,19 @@ public class BlackjackGameFunctions implements GameFunctions {
     @Override
     public boolean comprarCarta(String nome) {
         Player jogador = encontrarJogador(nome);
-        if (jogador != null && calcularPontuacao(jogador) <= 21) {
+        if (jogador != null && !jogador.isPerdeuTurno() && calcularPontuacao(jogador) <= 21) {
             jogador.adicionarCarta(deck.distribuirCarta());
             return true;
         }
         return false;
+    }
+
+    public void verificarEliminacaoJogador(String name) {
+        Player jogador = encontrarJogador(name);
+        assert jogador != null;
+        if (calcularPontuacao(jogador) > 21) {
+            jogador.setPerdeuTurno(true);
+        }
     }
 
     @Override
@@ -71,7 +78,7 @@ public class BlackjackGameFunctions implements GameFunctions {
 
         // Verifica se algum jogador tem Blackjack
         for (Player jogador : jogadores) {
-            if (calcularPontuacao(jogador) == 21 && jogador.getMao().size() == 2) {
+            if (!jogador.isPerdeuTurno() && calcularPontuacao(jogador) == 21 && jogador.getMao().size() == 2) {
                 vencedor = jogador; // Primeiro jogador com Blackjack é o vencedor
                 return "Jogador " + vencedor.getNome() + " venceu com Blackjack!";
             }
@@ -79,12 +86,14 @@ public class BlackjackGameFunctions implements GameFunctions {
 
         // Verifica o vencedor baseado na maior pontuação
         for (Player jogador : jogadores) {
-            int pontuacao = calcularPontuacao(jogador);
-            if (pontuacao <= 21 && pontuacao > maiorPontuacao) {
-                maiorPontuacao = pontuacao;
-                vencedor = jogador;
-            } else if (pontuacao == maiorPontuacao) {
-                vencedor = null; // Empate se pontuação for igual
+            if (!jogador.isPerdeuTurno()) {
+                int pontuacao = calcularPontuacao(jogador);
+                if (pontuacao <= 21 && pontuacao > maiorPontuacao) {
+                    maiorPontuacao = pontuacao;
+                    vencedor = jogador;
+                } else if (pontuacao == maiorPontuacao) {
+                    vencedor = null; // Empate se pontuação for igual
+                }
             }
         }
 
@@ -97,6 +106,7 @@ public class BlackjackGameFunctions implements GameFunctions {
         // Retorna o resultado
         return vencedor != null ? "O vencedor é: " + vencedor.getNome() + " com " + maiorPontuacao + " pontos!" : "O jogo terminou em empate (push).";
     }
+
 
     // Método para calcular a pontuação de um jogador no Blackjack
     public int calcularPontuacao(Player jogador) {
@@ -134,10 +144,15 @@ public class BlackjackGameFunctions implements GameFunctions {
 
     // Método para retornar o próximo jogador (usando o iterador circular)
     public Player proximoJogador() {
-        if (!iterador.hasNext()) {
-            // Reinicia o iterador quando chegar ao final da lista
-            iterador = jogadores.iterator();
+        Player jogador = null;
+        // Continua avançando até encontrar um jogador que não tenha perdido o turno
+        while (jogador == null || jogador.isPerdeuTurno()) {
+            if (!iterador.hasNext()) {
+                // Reinicia o iterador quando chegar ao final da lista
+                iterador = jogadores.iterator();
+            }
+            jogador = iterador.next();
         }
-        return iterador.next();
+        return jogador;
     }
 }

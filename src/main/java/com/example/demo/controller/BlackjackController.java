@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Card;
 import com.example.demo.model.Player;
 import com.example.demo.service.BlackjackGameFunctions;
 import org.springframework.web.bind.annotation.*;
@@ -34,10 +35,11 @@ public class BlackjackController {
     @GetMapping("/cartas")
     public List<String> obterCartasDeTodosOsJogadores() {
         return gameFunctions.getJogadores().stream()
+                .filter(jogador -> !jogador.isPerdeuTurno()) // Filtra jogadores que não perderam o turno
                 .map(jogador -> {
                     // Obtemos as cartas do jogador
                     String cartas = jogador.getMao().stream()
-                            .map(carta -> carta.toString()) // Representação das cartas
+                            .map(Card::toString) // Representação das cartas
                             .collect(Collectors.joining(", "));
 
                     // Calculamos a pontuação do jogador
@@ -68,5 +70,11 @@ public class BlackjackController {
     @GetMapping("/proximoJogador")
     public Player proximoJogador() {
         return gameFunctions.proximoJogador();
+    }
+
+    @PostMapping("/estourou/{nome}")
+    public String estourouJogo(@PathVariable  String nome) {
+        gameFunctions.verificarEliminacaoJogador(nome);
+        return "Jogador " + nome + " saiu da mesa.";
     }
 }

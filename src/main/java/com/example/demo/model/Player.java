@@ -7,6 +7,7 @@ public class Player {
 
     private String nome;
     private List<Card> mao = new ArrayList<>();
+    private boolean perdeuTurno = false;
 
     public Player(String nome) {
         this.nome = nome;
@@ -20,12 +21,21 @@ public class Player {
         return nome;
     }
 
+
     public void adicionarCarta(Card carta) {
         mao.add(carta);
     }
 
     public void removerCarta(Card carta) {
         mao.remove(carta);
+    }
+
+    public boolean isPerdeuTurno() {
+        return perdeuTurno;
+    }
+
+    public void setPerdeuTurno(boolean perdeuTurno) {
+        this.perdeuTurno = perdeuTurno;
     }
 
     @Override
