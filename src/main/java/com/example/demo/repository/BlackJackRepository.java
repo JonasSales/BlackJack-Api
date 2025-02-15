@@ -1,8 +1,8 @@
-package com.example.demo.model;
+package com.example.demo.repository;
 
 import java.util.List;
 
-public interface GameFunctions {
+public interface BlackJackRepository {
 
     // Inicia o jogo com uma lista de jogadores
     void iniciarJogo(List<String> nomes);

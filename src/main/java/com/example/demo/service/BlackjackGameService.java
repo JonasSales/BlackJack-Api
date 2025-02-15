@@ -2,8 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.model.Card;
 import com.example.demo.model.Deck;
-import com.example.demo.model.GameFunctions;
 import com.example.demo.model.Player;
+import com.example.demo.repository.BlackJackRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
@@ -11,40 +11,35 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Service
-public class BlackjackGameFunctions implements GameFunctions {
+public class BlackjackGameService implements BlackJackRepository {
 
-    private LinkedList<Player> jogadores = new LinkedList<>();
-    private Deck deck;
+    private final LinkedList<Player> jogadores;
+    private final Deck deck;
     private Iterator<Player> iterador;
 
-    public LinkedList<Player> getJogadores() {
-        return jogadores;
+    public BlackjackGameService() {
+        // Inicializa a lista de jogadores e o deck
+        this.jogadores = new LinkedList<>();
+        this.deck = new Deck(Card.criarBaralho(1));
     }
 
-    private Deck getDeck() {
-        return deck;
-    }
 
-    @Override
     public void iniciarJogo(List<String> nomes) {
-        List<Card> baralho = Card.criarBaralho(1);
-        deck = new Deck(baralho);
         deck.embaralhar();
-
         // Adiciona o crupiê
         Player crupie = new Player("Crupiê");
         jogadores.add(crupie);
 
-        // Adiciona jogadores à lista
+        // Adiciona os jogadores
         for (String nome : nomes) {
             Player jogador = new Player(nome);
             jogadores.add(jogador);
         }
         // Inicializa o iterador circular
         iterador = jogadores.iterator();
+        distribuirCartas();
     }
 
-    @Override
     public void distribuirCartas() {
         for (Player jogador : jogadores) {
             jogador.adicionarCarta(deck.distribuirCarta());
@@ -52,7 +47,10 @@ public class BlackjackGameFunctions implements GameFunctions {
         }
     }
 
-    @Override
+    public List<Player> getJogadores() {
+        return jogadores;
+    }
+
     public boolean comprarCarta(String nome) {
         Player jogador = encontrarJogador(nome);
         if (jogador != null && !jogador.isPerdeuTurno() && calcularPontuacao(jogador) <= 21) {
@@ -62,24 +60,15 @@ public class BlackjackGameFunctions implements GameFunctions {
         return false;
     }
 
-    public void verificarEliminacaoJogador(String name) {
-        Player jogador = encontrarJogador(name);
-        assert jogador != null;
-        if (calcularPontuacao(jogador) > 21) {
-            jogador.setPerdeuTurno(true);
-        }
-    }
-
-    @Override
     public String finalizarJogo() {
         int maiorPontuacao = 0;
-        Player vencedor = null; // Inicializa com null para o caso de empate
+        Player vencedor = null;
         Player crupie = jogadores.getFirst(); // O primeiro jogador é o crupiê
 
         // Verifica se algum jogador tem Blackjack
         for (Player jogador : jogadores) {
             if (!jogador.isPerdeuTurno() && calcularPontuacao(jogador) == 21 && jogador.getMao().size() == 2) {
-                vencedor = jogador; // Primeiro jogador com Blackjack é o vencedor
+                vencedor = jogador;
                 return "Jogador " + vencedor.getNome() + " venceu com Blackjack!";
             }
         }
@@ -92,7 +81,7 @@ public class BlackjackGameFunctions implements GameFunctions {
                     maiorPontuacao = pontuacao;
                     vencedor = jogador;
                 } else if (pontuacao == maiorPontuacao) {
-                    vencedor = null; // Empate se pontuação for igual
+                    vencedor = null; // Empate
                 }
             }
         }
@@ -103,34 +92,25 @@ public class BlackjackGameFunctions implements GameFunctions {
             return "O vencedor é o Crupiê com " + pontuacaoCrupie + " pontos!";
         }
 
-        // Retorna o resultado
+
         return vencedor != null ? "O vencedor é: " + vencedor.getNome() + " com " + maiorPontuacao + " pontos!" : "O jogo terminou em empate (push).";
     }
 
-
-    // Método para calcular a pontuação de um jogador no Blackjack
-    public int calcularPontuacao(Player jogador) {
-        int pontos = 0;
-        int ases = 0;
-
-        // Soma os pontos das cartas
-        for (Card carta : jogador.getMao()) {
-            int[] valores = carta.getValores();
-            for (int valor : valores) {
-                pontos += valor;
-                if (valor == 1) {
-                    ases++;
-                }
+    public Player proximoJogador() {
+        Player jogador = null;
+        while (jogador == null || jogador.isPerdeuTurno()) {
+            if (!iterador.hasNext()) {
+                iterador = jogadores.iterator();
             }
+            jogador = iterador.next();
         }
+        return jogador;
+    }
 
-        // Ajusta a pontuação se houver ases (um ÁS pode valer 1 ou 11)
-        while (pontos <= 11 && ases > 0) {
-            pontos += 10; // Conta um ÁS como 11, se não ultrapassar 21
-            ases--;
-        }
-
-        return pontos;
+    public void eliminarJogador(String nome) {
+        Player jogador = encontrarJogador(nome);
+        assert jogador != null;
+        jogador.setPerdeuTurno(true);
     }
 
     private Player encontrarJogador(String nome) {
@@ -142,17 +122,27 @@ public class BlackjackGameFunctions implements GameFunctions {
         return null;
     }
 
-    // Método para retornar o próximo jogador (usando o iterador circular)
-    public Player proximoJogador() {
-        Player jogador = null;
-        // Continua avançando até encontrar um jogador que não tenha perdido o turno
-        while (jogador == null || jogador.isPerdeuTurno()) {
-            if (!iterador.hasNext()) {
-                // Reinicia o iterador quando chegar ao final da lista
-                iterador = jogadores.iterator();
+
+
+    public int calcularPontuacao(Player jogador) {
+        int pontos = 0;
+        int ases = 0;
+
+        for (Card carta : jogador.getMao()) {
+            int[] valores = carta.getValores();
+            for (int valor : valores) {
+                pontos += valor;
+                if (valor == 1) {
+                    ases++;
+                }
             }
-            jogador = iterador.next();
         }
-        return jogador;
+
+        while (pontos <= 11 && ases > 0) {
+            pontos += 10;
+            ases--;
+        }
+
+        return pontos;
     }
 }
