@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
-import com.example.demo.service.BlackjackGame;
+import com.example.demo.model.Player;
+import com.example.demo.service.BlackjackGameFunctions;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,10 +12,10 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class BlackjackController {
 
-    private final BlackjackGame jogo;
+    private BlackjackGameFunctions jogo;
 
     public BlackjackController() {
-        jogo = new BlackjackGame(); // Instância do jogo
+        jogo = new BlackjackGameFunctions(); // Instância do jogo
     }
 
     // Iniciar o jogo
@@ -30,15 +31,25 @@ public class BlackjackController {
     // Jogador compra uma carta
     @PostMapping("/comprar/{nome}")
     public String comprarCarta(@PathVariable String nome) {
-        jogo.comprarCarta(nome);
-        return nome + " comprou uma carta!";
+        if(jogo.comprarCarta(nome)){
+            return nome + " comprou uma carta!";
+        };
+        return nome + " Já estourou o jogo";
     }
 
 
     // Finalizar o jogo e determinar o vencedor
     @GetMapping("/finalizar")
     public String finalizarJogo() {
-        return jogo.finalizarJogo();
+        String fimDeJogo = jogo.finalizarJogo();
+        jogo = new BlackjackGameFunctions();
+        return fimDeJogo;
+    }
+
+
+    @GetMapping("/jogadores")
+    public List<Player> obterJogadores() {
+        return jogo.getJogadores().stream().toList();
     }
 
     @GetMapping("/cartas")

@@ -39,17 +39,11 @@ public class Card {
         return naipe;
     }
 
-    public void setNaipe(Naipe naipe) {
-        this.naipe = naipe;
-    }
 
     public Letra getLetra() {
         return letra;
     }
 
-    public void setLetra(Letra letra) {
-        this.letra = letra;
-    }
 
     // Método para obter o valor da carta (caso o ÁS, pode retornar tanto 1 quanto 11)
     public int[] getValores() {
@@ -61,9 +55,6 @@ public class Card {
         return getLetra() + " de " + getNaipe();
     }
 
-    public int getValor(){
-        return letra.getValores()[0];
-    }
 
     // Método para criar o baralho único
     public static List<Card> criarBaralho(int quantidadeDeBaralhos) {

@@ -8,10 +8,6 @@ public class Player {
     private String nome;
     private List<Card> mao = new ArrayList<>();
 
-    public Player() {
-
-    }
-
     public Player(String nome) {
         this.nome = nome;
     }
@@ -20,18 +16,9 @@ public class Player {
         return mao;
     }
 
-    public void setMao(List<Card> mao) {
-        this.mao = mao;
-    }
-
     public String getNome() {
         return nome;
     }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
 
     public void adicionarCarta(Card carta) {
         mao.add(carta);
