@@ -4,46 +4,45 @@ import com.example.demo.model.Card;
 import com.example.demo.model.Deck;
 import com.example.demo.model.GameFunctions;
 import com.example.demo.model.Player;
+import org.springframework.stereotype.Service;
 
-
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
+@Service
 public class BlackjackGameFunctions implements GameFunctions {
 
-    private List<Player> jogadores = new ArrayList<>();
+    private LinkedList<Player> jogadores = new LinkedList<>();
     private Deck deck;
-    private Map<String, Player> mapaJogadores = new HashMap<>();
+    private Iterator<Player> iterador;
 
-
-    public List<Player> getJogadores() {
+    public LinkedList<Player> getJogadores() {
         return jogadores;
     }
-
 
     private Deck getDeck() {
         return deck;
     }
-
 
     @Override
     public void iniciarJogo(List<String> nomes) {
         List<Card> baralho = Card.criarBaralho(1);
         deck = new Deck(baralho);
         deck.embaralhar();
-        // Adiciona jogadores ao mapa e à lista
+
+        // Adiciona jogadores à lista
         for (String nome : nomes) {
             Player jogador = new Player(nome);
             jogadores.add(jogador);
-            mapaJogadores.put(nome, jogador);
         }
 
         // Adiciona o crupiê
         Player crupie = new Player("Crupiê");
         jogadores.add(crupie);
-        mapaJogadores.put("Crupiê", crupie);
+
+        // Inicializa o iterador circular
+        iterador = jogadores.iterator();
     }
 
     @Override
@@ -56,7 +55,7 @@ public class BlackjackGameFunctions implements GameFunctions {
 
     @Override
     public boolean comprarCarta(String nome) {
-        Player jogador = mapaJogadores.get(nome);
+        Player jogador = encontrarJogador(nome);
         if (jogador != null && calcularPontuacao(jogador) <= 21) {
             jogador.adicionarCarta(deck.distribuirCarta());
             return true;
@@ -69,7 +68,7 @@ public class BlackjackGameFunctions implements GameFunctions {
         int maiorPontuacao = 0;
         Player vencedor = null; // Inicializa com null para o caso de empate
         boolean algumBlackjack = false;
-        Player crupie = jogadores.getLast();
+        Player crupie = jogadores.getLast(); // O último jogador é o crupiê
 
         // Verifica se algum jogador tem Blackjack
         for (Player jogador : jogadores) {
@@ -83,8 +82,6 @@ public class BlackjackGameFunctions implements GameFunctions {
                 algumBlackjack = true;
             }
         }
-
-
 
         // Verifica o vencedor baseado na maior pontuação
         for (Player jogador : jogadores) {
@@ -103,11 +100,9 @@ public class BlackjackGameFunctions implements GameFunctions {
             return "O vencedor é o Crupiê com " + pontuacaoCrupie + " pontos!";
         }
 
-
         // Retorna o resultado
         return vencedor != null ? "O vencedor é: " + vencedor.getNome() + " com " + maiorPontuacao + " pontos!" : "O jogo terminou em empate (push).";
     }
-
 
     // Método para calcular a pontuação de um jogador no Blackjack
     public int calcularPontuacao(Player jogador) {
@@ -132,5 +127,22 @@ public class BlackjackGameFunctions implements GameFunctions {
         }
 
         return pontos;
+    }
+
+    private Player encontrarJogador(String nome) {
+        for (Player jogador : jogadores) {
+            if (jogador.getNome().equals(nome)) {
+                return jogador;
+            }
+        }
+        return null;
+    }
+
+    // Método para retornar o próximo jogador (usando o iterador circular)
+    public Player proximoJogador() {
+        if (!iterador.hasNext()) {
+            iterador = jogadores.iterator(); // Reinicia quando chega ao fim
+        }
+        return iterador.next();
     }
 }

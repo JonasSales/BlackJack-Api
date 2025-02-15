@@ -8,65 +8,64 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/blackjack")
+@RequestMapping("/blackjack")
 @CrossOrigin(origins = "*")
 public class BlackjackController {
 
-    private BlackjackGameFunctions jogo;
+    private BlackjackGameFunctions gameFunctions;  // Autowire the service
 
-    public BlackjackController() {
-        jogo = new BlackjackGameFunctions(); // Instância do jogo
+    public BlackjackController(BlackjackGameFunctions gameFunctions) {
+        this.gameFunctions = gameFunctions;
     }
 
-    // Iniciar o jogo
     @PostMapping("/iniciar")
     public String iniciarJogo(@RequestBody List<String> nomes) {
-        jogo.iniciarJogo(nomes);
-        jogo.distribuirCartas();
-        return "Jogo iniciado com os jogadores: " + String.join(", ", nomes);
+        gameFunctions.iniciarJogo(nomes);
+        gameFunctions.distribuirCartas();
+        return "Jogo iniciado! Cartas distribuídas!";
     }
-
-
-
-    // Jogador compra uma carta
-    @PostMapping("/comprar/{nome}")
-    public String comprarCarta(@PathVariable String nome) {
-        if(jogo.comprarCarta(nome)){
-            return nome + " comprou uma carta!";
-        };
-        return nome + " Já estourou o jogo";
-    }
-
-
-    // Finalizar o jogo e determinar o vencedor
-    @GetMapping("/finalizar")
-    public String finalizarJogo() {
-        String fimDeJogo = jogo.finalizarJogo();
-        jogo = new BlackjackGameFunctions();
-        return fimDeJogo;
-    }
-
 
     @GetMapping("/jogadores")
     public List<Player> obterJogadores() {
-        return jogo.getJogadores().stream().toList();
+        return gameFunctions.getJogadores();
     }
+
 
     @GetMapping("/cartas")
     public List<String> obterCartasDeTodosOsJogadores() {
-        return jogo.getJogadores().stream()
+        return gameFunctions.getJogadores().stream()
                 .map(jogador -> {
                     // Obtemos as cartas do jogador
                     String cartas = jogador.getMao().stream()
                             .map(carta -> carta.toString()) // Representação das cartas
                             .collect(Collectors.joining(", "));
-
                     // Calculamos a pontuação do jogador
-                    int pontos = jogo.calcularPontuacao(jogador); // Chama o método para calcular a pontuação
+                    int pontos = gameFunctions.calcularPontuacao(jogador); // Chama o método para calcular a pontuação
 
                     // Retornamos o nome do jogador, as cartas e a pontuação
                     return jogador.getNome() + ": " + cartas + " | Pontuação: " + pontos;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/comprar/{nome}")
+    public String comprarCarta(@PathVariable  String nome) {
+        boolean sucesso = gameFunctions.comprarCarta(nome);
+        if (sucesso) {
+            return "Jogador " + nome + " comprou uma carta.";
+        }
+        return "Jogador " + nome + " não pode comprar mais cartas.";
+    }
+
+    @GetMapping("/finalizar")
+    public String finalizarJogo() {
+        String fimDeJogo = gameFunctions.finalizarJogo();
+        gameFunctions = new BlackjackGameFunctions();
+        return fimDeJogo;
+    }
+
+    @GetMapping("/proximoJogador")
+    public Player proximoJogador() {
+        return gameFunctions.proximoJogador();
     }
 }
