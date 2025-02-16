@@ -5,7 +5,7 @@ import java.util.List;
 public interface BlackJackRepository {
 
     // Inicia o jogo com uma lista de jogadores
-    void iniciarJogo(List<String> nomes);
+    void iniciarJogo();
 
     // Distribui as cartas aos jogadores
     void distribuirCartas();

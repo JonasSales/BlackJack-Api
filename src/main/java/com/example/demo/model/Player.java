@@ -22,6 +22,14 @@ public class Player {
     }
 
 
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setMao(List<Card> mao) {
+        this.mao = mao;
+    }
+
     public void adicionarCarta(Card carta) {
         mao.add(carta);
     }
