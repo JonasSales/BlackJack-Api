@@ -10,7 +10,7 @@ public class Card {
     }
 
     public enum Letra {
-        AS(11), DOIS(2), TRES(3),
+        AS(1), DOIS(2), TRES(3),
         QUATRO(4), CINCO(5), SEIS(6),
         SETE(7), OITO(8), NOVE(9),
         DEZ(10), VALETE(10), DAMA(10), REI(10);
@@ -26,8 +26,18 @@ public class Card {
         }
     }
 
+
     private Naipe naipe;
     private Letra letra;
+
+
+    public void setNaipe(Naipe naipe) {
+        this.naipe = naipe;
+    }
+
+    public void setLetra(Letra letra) {
+        this.letra = letra;
+    }
 
     // Construtor
     public Card(Naipe naipe, Letra letra) {
@@ -64,6 +74,7 @@ public class Card {
                 adicionarCartasPorNaipe(baralho, naipe);
             }
         }
+
         return baralho;
     }
 

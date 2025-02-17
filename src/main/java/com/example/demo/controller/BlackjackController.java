@@ -14,7 +14,9 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/blackjack")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*",
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+
 public class BlackjackController {
 
     private final BlackjackGameService gameFunctions;
@@ -70,12 +72,18 @@ public class BlackjackController {
     }
 
 
-    @PostMapping("/comprar/{nome}")
-    public ResponseEntity<Map<String, String>> comprarCarta(@PathVariable String nome) {
+    @PostMapping("/comprar")
+    public ResponseEntity<Map<String, String>> comprarCarta(@RequestBody Player jogador) {
         Map<String, String> response = new HashMap<>();
-        boolean sucesso = gameFunctions.comprarCarta(nome);
-        response.put("message", sucesso ? "Jogador " + nome + " comprou uma carta." : "Jogador " + nome + " não pode comprar mais cartas.");
-        return new ResponseEntity<>(response, sucesso ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
+        boolean sucesso = gameFunctions.comprarCarta(jogador);
+        // Mensagem que será enviada no corpo da resposta
+        String mensagem = sucesso
+                ? "Jogador " + jogador.getNome() + " comprou uma carta."
+                : "Jogador " + jogador.getNome() + " não pode comprar mais cartas.";
+        // Adiciona a mensagem no mapa de resposta
+        response.put("message", mensagem);
+        // Retorna a resposta com o status adequado
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/finalizar")
@@ -92,12 +100,20 @@ public class BlackjackController {
         return gameFunctions.proximoJogador();
     }
 
-    @PostMapping("/estourou/{nome}")
-    public ResponseEntity<Map<String, String>> estourouJogo(@PathVariable String nome) {
+
+    @PostMapping("/encerrar")
+    public ResponseEntity<Map<String, String>> encerrarMao(@RequestBody Player jogador) {
+        boolean sucesso = gameFunctions.encerrarMao(jogador); // Função que processa o término da mão
         Map<String, String> response = new HashMap<>();
-        gameFunctions.eliminarJogador(nome);
-        response.put("message", "Jogador " + nome + " saiu da mesa.");
+        response.put("message",
+                sucesso ? "A mão foi encerrada com sucesso!" : "Erro ao encerrar a mão. Tente novamente.");
+        // Verifica se todos os jogadores encerraram a mão
+        boolean todosEncerraram = gameFunctions.verificarTodosEncerraram(); // Função que verifica se todos terminaram
+        if (todosEncerraram) {
+            // Finaliza o jogo
+            gameFunctions.finalizarJogo();
+            response.put("message", "Todos os jogadores encerraram a mão. O jogo foi finalizado.");
+        }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
 }

@@ -5,19 +5,38 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Table {
-    private LinkedList<Player> jogadores;
-    private Deck deck;
+    private  LinkedList<Player> jogadores;
+    private  Deck deck;
     private boolean jogoIniciado;
     private Iterator<Player> iterador;
-    private Player jogadorAtual;
 
     public Table() {
         this.jogadores = new LinkedList<>();
+        adicionarJogador(new Player("Crupîe"));
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
     }
 
 
+    public void setJogadores(LinkedList<Player> jogadores) {
+        this.jogadores = jogadores;
+    }
+
+    public void setDeck(Deck deck) {
+        this.deck = deck;
+    }
+
+    public void setJogoIniciado(boolean jogoIniciado) {
+        this.jogoIniciado = jogoIniciado;
+    }
+
+    public Iterator<Player> getIterador() {
+        return iterador;
+    }
+
+    public void setIterador(Iterator<Player> iterador) {
+        this.iterador = iterador;
+    }
 
     public List<Player> getJogadores() {
         return jogadores;
@@ -25,11 +44,19 @@ public class Table {
 
     public boolean adicionarJogador(Player jogador) {
         if (!jogoIniciado) {
-            //System.out.println(jogador.getNome());
             jogadores.add(jogador);
             return true;
         }
         return false;
+    }
+
+    public Player encontrarJogador(String name){
+        for (Player jogador : jogadores) {
+            if (jogador.getNome().equals(name)) {
+                return jogador;
+            }
+        }
+        return null;
     }
 
     public boolean isJogoIniciado() {
@@ -38,10 +65,9 @@ public class Table {
 
     public void iniciarJogo() {
         if (!jogadores.isEmpty()) {
-            jogoIniciado = true;
+            setJogoIniciado(true);
             deck.embaralhar();
             iterador = jogadores.iterator();
-            jogadorAtual = proximoJogador(); // Define o primeiro jogador
         }
     }
 
@@ -59,8 +85,8 @@ public class Table {
         }
 
         while (iterador.hasNext()) {
-            jogadorAtual = iterador.next();
-            if (!jogadorAtual.isPerdeuTurno()) {
+            Player jogadorAtual = iterador.next();
+            if (!jogadorAtual.getPerdeuTurno() && !jogadorAtual.getStand()) {
                 return jogadorAtual;
             }
         }
@@ -68,15 +94,27 @@ public class Table {
     }
 
     public void eliminarJogador(String nome) {
-        for (Player jogador : jogadores) {
-            if (jogador.getNome().equals(nome)) {
-                jogador.setPerdeuTurno(true);
-                break;
-            }
+        Player jogador = encontrarJogador(nome);
+        if (jogador != null) {
+            jogadores.remove(jogador);
         }
     }
 
-    public Player getJogadorAtual() {
-        return jogadorAtual;
+    public void encerrarMao(String name){
+        Player jogador = encontrarJogador(name);
+        if (jogador != null) {
+            jogador.encerrarMao();
+        }
     }
+
+    public boolean todosJogadoresEncerraramMao() {
+        for (Player jogador : jogadores) {
+            if (!jogador.getStand()) {  // Verifique se o jogador não encerrou a mão
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 }
