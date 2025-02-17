@@ -8,7 +8,7 @@ public class Card {
     private final String letra;
     private final int[] valores;
 
-    public Card(String naipe, String letra) {
+    private Card(String naipe, String letra) {
         // Validação de entrada para o naipe e letra
         if (!isNaipeValido(naipe)) {
             throw new IllegalArgumentException("Naipe inválido.");
@@ -78,6 +78,6 @@ public class Card {
 
     @Override
     public String toString() {
-        return letra + " de " + naipe;
+        return getLetra() + " de " + getNaipe();
     }
 }

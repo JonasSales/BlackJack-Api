@@ -86,7 +86,7 @@ public class Table {
 
         while (iterador.hasNext()) {
             Player jogadorAtual = iterador.next();
-            if (!jogadorAtual.getPerdeuTurno() && !jogadorAtual.getStand()) {
+            if (jogadorAtual.getPerdeuTurno() && jogadorAtual.getStand()) {
                 return jogadorAtual;
             }
         }
@@ -96,7 +96,7 @@ public class Table {
     public void eliminarJogador(String nome) {
         Player jogador = encontrarJogador(nome);
         if (jogador != null) {
-            jogadores.remove(jogador);
+            jogador.setPerdeuTurno();
         }
     }
 

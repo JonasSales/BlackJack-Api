@@ -81,6 +81,7 @@ public class BlackjackController {
                 ? "Jogador " + jogador.getNome() + " comprou uma carta."
                 : "Jogador " + jogador.getNome() + " não pode comprar mais cartas.";
         // Adiciona a mensagem no mapa de resposta
+        gameFunctions.eliminarJogador(jogador.getNome());
         response.put("message", mensagem);
         // Retorna a resposta com o status adequado
         return new ResponseEntity<>(response, HttpStatus.OK);

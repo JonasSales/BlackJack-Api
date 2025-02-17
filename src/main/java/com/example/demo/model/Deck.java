@@ -1,40 +1,48 @@
 package com.example.demo.model;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
-public record Deck(List<Card> cartas) {
+public class Deck {
 
-    // Método para embaralhar as cartas
+    private LinkedList<Card> cards;
+
+    public Deck(List<Card> baralho) {
+        this.cards = new LinkedList<>(baralho);
+    }
+
     public void embaralhar() {
-        Collections.shuffle(cartas);
+        Collections.shuffle(cards);
     }
 
-    // Método para distribuir uma carta (remover a carta do deck)
     public Card distribuirCarta() {
-        if (!cartas.isEmpty()) {
-            return cartas.removeFirst();  // Retira a primeira carta do deck
+        if (!cards.isEmpty()) {
+            return cards.removeFirst();  // Remove a carta do início da lista
         }
-        return null;  // Retorna null se o deck estiver vazio
+        return null;
     }
 
-    // Método para ver quantas cartas restam no deck
     public int tamanho() {
-        return cartas.size();
+        return cards.size();
     }
 
-    // Método para reverter as cartas de volta para o deck
-    public void retornarCarta(Card carta) {
-        cartas.add(carta);
+    public void resetDeck(List<Card> baralho) {
+        cards.clear();
+        cards.addAll(baralho);
+        embaralhar();
     }
 
-    // Método toString para exibir o deck
+    public LinkedList<Card> getCards() {
+        return cards;
+    }
+
+    public void setCards(LinkedList<Card> cartas) {
+        this.cards = cartas;
+    }
+
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (Card carta : cartas) {
-            sb.append(carta.toString()).append("\n");
-        }
-        return sb.toString();
+        return "Deck contém " + tamanho() + " cartas.";
     }
 }
