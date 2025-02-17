@@ -13,18 +13,17 @@ import java.util.List;
 public class BlackjackGameService implements BlackJackRepository {
 
     private Table mesa;
-
     public BlackjackGameService() {
         this.mesa = new Table(); // Sempre mantém o estado da mesa
     }
-
     public boolean adicionarJogador(Player jogador) {
         return mesa.adicionarJogador(jogador);
     }
-
     public Deck getDeck(){
         return mesa.getDeck();
     }
+
+
 
 
     @Override
@@ -34,6 +33,7 @@ public class BlackjackGameService implements BlackJackRepository {
             for (Player jogador : mesa.getJogadores()) {
                 jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
                 jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
+                jogador.calcularPontuacao();
             }
         }
     }
@@ -43,45 +43,25 @@ public class BlackjackGameService implements BlackJackRepository {
 
     }
 
-    public boolean comprarCarta(String nome) {
-        for (Player jogador : mesa.getJogadores()) {
-            if (jogador.getNome().equals(nome) && !jogador.isPerdeuTurno()) {
-                Card carta = mesa.getDeck().distribuirCarta();
-                jogador.adicionarCarta(carta);
 
-                if (calcularPontuacao(jogador) > 21) {
-                    jogador.setPerdeuTurno(true);
-                    return false;
-                }
-                return true;
-            }
+    @Override
+    public boolean comprarCarta(Player jogador) {
+        Player jogadorNovo = mesa.encontrarJogador(jogador.getNome());
+        Card carta = mesa.getDeck().distribuirCarta();
+        jogadorNovo.adicionarCarta(carta);
+        int pontuacaoJogador = jogadorNovo.calcularPontuacao();
+        if ( pontuacaoJogador > 21) {
+            jogadorNovo.setPerdeuTurno();
+            return false;
         }
-        return false;
+        return true;
     }
 
-    public int calcularPontuacao(Player jogador) {
-        int pontos = 0;
-        int ases = 0;
 
-        for (Card carta : jogador.getMao()) {
-            int valor = carta.getValores()[0];
-            if (valor == 1) {
-                ases++;
-                pontos += 11;
-            } else pontos += Math.min(valor, 10);
-        }
-
-        while (pontos > 21 && ases > 0) {
-            pontos -= 10;
-            ases--;
-        }
-
-        return pontos;
-    }
-
+    @Override
     public String finalizarJogo() {
         List<Player> jogadoresAtivos = mesa.getJogadores().stream()
-                .filter(j -> !j.isPerdeuTurno())
+                .filter(player -> !player.getPerdeuTurno())
                 .toList();
 
         if (jogadoresAtivos.isEmpty()) {
@@ -90,12 +70,12 @@ public class BlackjackGameService implements BlackJackRepository {
 
         Player vencedor = jogadoresAtivos.getFirst();
         for (Player jogador : jogadoresAtivos) {
-            if (calcularPontuacao(jogador) > calcularPontuacao(vencedor)) {
+            if (jogador.calcularPontuacao() > vencedor.calcularPontuacao()) {
                 vencedor = jogador;
             }
         }
 
-        return "O vencedor é " + vencedor.getNome() + " com " + calcularPontuacao(vencedor) + " pontos!";
+        return "O vencedor é " + vencedor.getNome() + " com " + vencedor.calcularPontuacao() + " pontos!";
     }
 
     public Player proximoJogador() {
@@ -110,8 +90,20 @@ public class BlackjackGameService implements BlackJackRepository {
         return mesa.getJogadores();
     }
 
+    public boolean encerrarMao(Player jogador){
+        jogador = mesa.encontrarJogador(jogador.getNome());
+        if (jogador != null) {
+            jogador.encerrarMao();
+            return true;
+        }
+        return false;
+    }
+
     public void resetarJogo() {
         mesa = new Table();
+    }
 
+    public boolean verificarTodosEncerraram() {
+        return mesa.todosJogadoresEncerraramMao();
     }
 }

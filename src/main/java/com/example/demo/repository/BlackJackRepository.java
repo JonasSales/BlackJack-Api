@@ -1,6 +1,6 @@
 package com.example.demo.repository;
 
-import java.util.List;
+import com.example.demo.model.Player;
 
 public interface BlackJackRepository {
 
@@ -11,7 +11,7 @@ public interface BlackJackRepository {
     void distribuirCartas();
 
     // Permite que um jogador compre uma carta
-    boolean comprarCarta(String nome);
+    boolean comprarCarta(Player jogador);
 
     // Retorna a pontuação do jogador
 
