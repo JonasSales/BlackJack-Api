@@ -9,11 +9,30 @@ public class Player {
     private List<Card> mao = new ArrayList<>();
     private boolean perdeuTurno = false;
     private boolean stand = false;
+    private boolean jogadorAtual = false;
     private int pontuacao = 0;
 
 
+    public Player() {
+
+    }
+
+    public Player(String nome, List<Card> mao, boolean perdeuTurno, boolean stand, boolean jogadorAtual, int pontuacao) {
+        this.nome = nome;
+        this.mao = mao;
+        this.perdeuTurno = perdeuTurno;
+        this.stand = stand;
+        this.jogadorAtual = jogadorAtual;
+        this.pontuacao = pontuacao;
+    }
+
     public Player(String nome) {
         this.nome = nome;
+    }
+
+    public Player(String nome, boolean jogadorAtual) {
+        this.nome = nome;
+        this.jogadorAtual = jogadorAtual;
     }
 
 
@@ -27,6 +46,15 @@ public class Player {
 
     public int getPontuacao() {
         return pontuacao;
+    }
+
+    public void setJogadorAtual(boolean jogadorAtual) {
+        this.jogadorAtual = jogadorAtual;
+    }
+
+
+    public boolean isJogadorAtual() {
+        return jogadorAtual;
     }
 
     public void setPontuacao(int pontuacao) {
