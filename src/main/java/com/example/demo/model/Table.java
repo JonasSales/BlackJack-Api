@@ -12,7 +12,7 @@ public class Table {
 
     public Table() {
         this.jogadores = new LinkedList<>();
-        adicionarJogador(new Player("Crupîe"));
+        adicionarJogador(new Player("Crupîe", true));
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
     }
@@ -53,6 +53,15 @@ public class Table {
     public Player encontrarJogador(String name){
         for (Player jogador : jogadores) {
             if (jogador.getNome().equals(name)) {
+                return jogador;
+            }
+        }
+        return null;
+    }
+
+    public Player encontrarJogadorAtual(){
+        for (Player jogador : jogadores) {
+            if (jogador.isJogadorAtual()){
                 return jogador;
             }
         }
@@ -109,11 +118,11 @@ public class Table {
 
     public boolean todosJogadoresEncerraramMao() {
         for (Player jogador : jogadores) {
-            if (!jogador.getStand()) {  // Verifique se o jogador não encerrou a mão
-                return false;
+            if (jogador.getStand()) {  // Verifique se o jogador não encerrou a mão
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
 
