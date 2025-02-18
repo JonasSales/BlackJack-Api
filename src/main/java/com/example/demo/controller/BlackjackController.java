@@ -39,9 +39,6 @@ public class BlackjackController {
         List<Player> jogadoresAtuais = players.stream()
                 .filter(player -> player.isJogadorAtual() && !player.isPerdeuTurno() && !player.isStand()) // Verifica os atributos
                 .collect(Collectors.toList()); // Coleta todos os jogadores que atendem a essas condições
-        if (jogadoresAtuais.isEmpty()) {
-            throw new RuntimeException("Nenhum jogador atual encontrado ou em estado inválido");
-        }
         return new ResponseEntity<>(jogadoresAtuais, HttpStatus.OK);
     }
 
