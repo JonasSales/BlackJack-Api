@@ -107,4 +107,16 @@ public class BlackjackGameService implements BlackJackRepository {
     public boolean verificarTodosEncerraram() {
         return mesa.todosJogadoresEncerraramMao();
     }
+
+    public boolean jogada(Player player, String jogada) {
+        Player jogador = mesa.encontrarJogador(player.getNome());
+        if (jogador == null) {
+            return false;
+        }
+        return switch (jogada) {
+            case "hit" -> comprarCarta(jogador);
+            case "stand" -> encerrarMao(jogador);
+            default -> false;
+        };
+    }
 }
