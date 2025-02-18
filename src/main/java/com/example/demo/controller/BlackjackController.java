@@ -33,17 +33,18 @@ public class BlackjackController {
     }
 
     @GetMapping("/jogadoratual")
-    public ResponseEntity<Player> jogadorAtual() {
+    public ResponseEntity<List<Player>> jogadoresAtuais() {
         List<Player> players = gameFunctions.getJogadores();
-
-        // Encontrar o jogador atual com isJogadorAtual() == true e verificar se não perdeu o turno nem está em stand
-        Player jogadorAtual = players.stream()
-                .filter(player -> player.isJogadorAtual() && !player.isPerdeuTurno() && !player.isStand()) // Verifica o estado do jogador
-                .findFirst()  // Pega o primeiro (deve ser único)
-                .orElseThrow(() -> new RuntimeException("Jogador atual não encontrado ou em estado inválido"));
-
-        return new ResponseEntity<>(jogadorAtual, HttpStatus.OK);
+        // Filtrar os jogadores que são o jogador atual, não perderam turno e não estão em stand
+        List<Player> jogadoresAtuais = players.stream()
+                .filter(player -> player.isJogadorAtual() && !player.isPerdeuTurno() && !player.isStand()) // Verifica os atributos
+                .collect(Collectors.toList()); // Coleta todos os jogadores que atendem a essas condições
+        if (jogadoresAtuais.isEmpty()) {
+            throw new RuntimeException("Nenhum jogador atual encontrado ou em estado inválido");
+        }
+        return new ResponseEntity<>(jogadoresAtuais, HttpStatus.OK);
     }
+
 
     @PostMapping("/adicionar")
     public ResponseEntity<Map<String, String>> adicionarJogador(@RequestBody Player jogador) {
