@@ -30,6 +30,7 @@ public class BlackjackGameService implements BlackJackRepository {
     public void iniciarJogo() {
         if (!mesa.isJogoIniciado()) {
             mesa.iniciarJogo();
+            mesa.getJogadores().getFirst().setJogadorAtual(true);
             for (Player jogador : mesa.getJogadores()) {
                 jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
                 jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
@@ -38,10 +39,7 @@ public class BlackjackGameService implements BlackJackRepository {
         }
     }
 
-    @Override
-    public void distribuirCartas() {
 
-    }
 
 
     @Override
@@ -52,6 +50,7 @@ public class BlackjackGameService implements BlackJackRepository {
         int pontuacaoJogador = jogadorNovo.calcularPontuacao();
         if ( pontuacaoJogador > 21) {
             jogadorNovo.setPerdeuTurno();
+            jogadorNovo.setJogadorAtual(false);
             return false;
         }
         return true;
@@ -61,7 +60,7 @@ public class BlackjackGameService implements BlackJackRepository {
     @Override
     public String finalizarJogo() {
         List<Player> jogadoresAtivos = mesa.getJogadores().stream()
-                .filter(player -> !player.getPerdeuTurno())
+                .filter(Player::getPerdeuTurno)
                 .toList();
 
         if (jogadoresAtivos.isEmpty()) {
@@ -94,6 +93,7 @@ public class BlackjackGameService implements BlackJackRepository {
         jogador = mesa.encontrarJogador(jogador.getNome());
         if (jogador != null) {
             jogador.encerrarMao();
+            jogador.setJogadorAtual(false);
             return true;
         }
         return false;
@@ -101,9 +101,22 @@ public class BlackjackGameService implements BlackJackRepository {
 
     public void resetarJogo() {
         mesa = new Table();
+
     }
 
     public boolean verificarTodosEncerraram() {
         return mesa.todosJogadoresEncerraramMao();
+    }
+
+    public boolean jogada(Player player, String jogada) {
+        Player jogador = mesa.encontrarJogador(player.getNome());
+        if (jogador == null) {
+            return false;
+        }
+        return switch (jogada) {
+            case "hit" -> comprarCarta(jogador);
+            case "stand" -> encerrarMao(jogador);
+            default -> false;
+        };
     }
 }

@@ -59,6 +59,15 @@ public class Table {
         return null;
     }
 
+    public Player encontrarJogadorAtual(){
+        for (Player jogador : jogadores) {
+            if (jogador.isJogadorAtual()){
+                return jogador;
+            }
+        }
+        return null;
+    }
+
     public boolean isJogoIniciado() {
         return jogoIniciado;
     }
@@ -86,7 +95,8 @@ public class Table {
 
         while (iterador.hasNext()) {
             Player jogadorAtual = iterador.next();
-            if (!jogadorAtual.getPerdeuTurno() && !jogadorAtual.getStand()) {
+            if (jogadorAtual.getPerdeuTurno() && jogadorAtual.getStand()) {
+                jogadorAtual.setJogadorAtual(true);
                 return jogadorAtual;
             }
         }
@@ -96,7 +106,7 @@ public class Table {
     public void eliminarJogador(String nome) {
         Player jogador = encontrarJogador(nome);
         if (jogador != null) {
-            jogadores.remove(jogador);
+            jogador.setPerdeuTurno();
         }
     }
 
@@ -109,11 +119,11 @@ public class Table {
 
     public boolean todosJogadoresEncerraramMao() {
         for (Player jogador : jogadores) {
-            if (!jogador.getStand()) {  // Verifique se o jogador não encerrou a mão
-                return false;
+            if (jogador.getStand()) {  // Verifique se o jogador não encerrou a mão
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
 

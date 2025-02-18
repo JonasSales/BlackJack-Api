@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.DTO.playerRequest;
 import com.example.demo.model.Card;
 import com.example.demo.model.Player;
 import com.example.demo.service.BlackjackGameService;
@@ -29,6 +30,19 @@ public class BlackjackController {
     public ResponseEntity<List<Player>> jogadores() {
         List<Player> jogadores = gameFunctions.getJogadores();
         return new ResponseEntity<>(jogadores, HttpStatus.OK);
+    }
+
+    @GetMapping("/jogadoratual")
+    public ResponseEntity<Player> jogadorAtual() {
+        List<Player> players = gameFunctions.getJogadores();
+
+        // Encontrar o jogador atual com isJogadorAtual() == true e verificar se não perdeu o turno nem está em stand
+        Player jogadorAtual = players.stream()
+                .filter(player -> player.isJogadorAtual() && !player.isPerdeuTurno() && !player.isStand()) // Verifica o estado do jogador
+                .findFirst()  // Pega o primeiro (deve ser único)
+                .orElseThrow(() -> new RuntimeException("Jogador atual não encontrado ou em estado inválido"));
+
+        return new ResponseEntity<>(jogadorAtual, HttpStatus.OK);
     }
 
     @PostMapping("/adicionar")
@@ -72,20 +86,6 @@ public class BlackjackController {
     }
 
 
-    @PostMapping("/comprar")
-    public ResponseEntity<Map<String, String>> comprarCarta(@RequestBody Player jogador) {
-        Map<String, String> response = new HashMap<>();
-        boolean sucesso = gameFunctions.comprarCarta(jogador);
-        // Mensagem que será enviada no corpo da resposta
-        String mensagem = sucesso
-                ? "Jogador " + jogador.getNome() + " comprou uma carta."
-                : "Jogador " + jogador.getNome() + " não pode comprar mais cartas.";
-        // Adiciona a mensagem no mapa de resposta
-        response.put("message", mensagem);
-        // Retorna a resposta com o status adequado
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
     @GetMapping("/finalizar")
     public ResponseEntity<Map<String, String>> finalizarJogo() {
         Map<String, String> response = new HashMap<>();
@@ -101,19 +101,31 @@ public class BlackjackController {
     }
 
 
-    @PostMapping("/encerrar")
-    public ResponseEntity<Map<String, String>> encerrarMao(@RequestBody Player jogador) {
-        boolean sucesso = gameFunctions.encerrarMao(jogador); // Função que processa o término da mão
+    @PostMapping("/jogada")
+    public ResponseEntity<Map<String, String>> jogada(@RequestBody playerRequest request) {
         Map<String, String> response = new HashMap<>();
-        response.put("message",
-                sucesso ? "A mão foi encerrada com sucesso!" : "Erro ao encerrar a mão. Tente novamente.");
-        // Verifica se todos os jogadores encerraram a mão
-        boolean todosEncerraram = gameFunctions.verificarTodosEncerraram(); // Função que verifica se todos terminaram
-        if (todosEncerraram) {
-            // Finaliza o jogo
-            gameFunctions.finalizarJogo();
-            response.put("message", "Todos os jogadores encerraram a mão. O jogo foi finalizado.");
+        Player jogador = request.getPlayer();
+        String jogada = request.getJogada();
+
+        if (jogador == null || jogada == null) {
+            response.put("mensagem", "Jogador ou jogada inválida.");
+            return ResponseEntity.badRequest().body(response);
         }
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        // Chama a função que decide se é "hit" ou "stand"
+        boolean jogadaValida = gameFunctions.jogada(jogador, jogada);
+
+        // Mensagem de resposta com ternário para decidir o sucesso ou falha da jogada
+        String mensagem = jogadaValida
+                ? "Jogada realizada com sucesso para " + jogador.getNome()
+                : "Jogada inválida para " + jogador.getNome();
+
+        response.put("mensagem", mensagem);
+        // Caso o jogo tenha terminado, finalize
+        if (!gameFunctions.verificarTodosEncerraram()) {
+            gameFunctions.finalizarJogo();
+            response.put("mensagem", "Todos os jogadores encerraram a mão. O jogo foi finalizado.");
+        }
+        return ResponseEntity.ok(response);
     }
+
 }
