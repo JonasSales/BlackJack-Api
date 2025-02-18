@@ -30,6 +30,7 @@ public class BlackjackGameService implements BlackJackRepository {
     public void iniciarJogo() {
         if (!mesa.isJogoIniciado()) {
             mesa.iniciarJogo();
+            mesa.getJogadores().getFirst().setJogadorAtual(true);
             for (Player jogador : mesa.getJogadores()) {
                 jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
                 jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
@@ -38,10 +39,7 @@ public class BlackjackGameService implements BlackJackRepository {
         }
     }
 
-    @Override
-    public void distribuirCartas() {
 
-    }
 
 
     @Override
@@ -50,8 +48,9 @@ public class BlackjackGameService implements BlackJackRepository {
         Card carta = mesa.getDeck().distribuirCarta();
         jogadorNovo.adicionarCarta(carta);
         int pontuacaoJogador = jogadorNovo.calcularPontuacao();
-        if ( pontuacaoJogador >= 22) {
+        if ( pontuacaoJogador > 21) {
             jogadorNovo.setPerdeuTurno();
+            jogadorNovo.setJogadorAtual(false);
             return false;
         }
         return true;
@@ -94,6 +93,7 @@ public class BlackjackGameService implements BlackJackRepository {
         jogador = mesa.encontrarJogador(jogador.getNome());
         if (jogador != null) {
             jogador.encerrarMao();
+            jogador.setJogadorAtual(false);
             return true;
         }
         return false;

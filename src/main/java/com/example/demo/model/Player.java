@@ -35,6 +35,13 @@ public class Player {
         this.jogadorAtual = jogadorAtual;
     }
 
+    public boolean isPerdeuTurno() {
+        return perdeuTurno;
+    }
+
+    public boolean isStand() {
+        return stand;
+    }
 
     public void setMao(List<Card> mao) {
         this.mao = mao;
@@ -96,10 +103,6 @@ public class Player {
     public boolean getPerdeuTurno() {
         return !perdeuTurno;
     }
-
-
-
-
 
     public void encerrarMao(){
         stand  = true;

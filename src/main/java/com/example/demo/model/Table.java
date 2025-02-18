@@ -12,7 +12,7 @@ public class Table {
 
     public Table() {
         this.jogadores = new LinkedList<>();
-        adicionarJogador(new Player("Crupîe", true));
+        adicionarJogador(new Player("Crupîe"));
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
     }
@@ -96,6 +96,7 @@ public class Table {
         while (iterador.hasNext()) {
             Player jogadorAtual = iterador.next();
             if (jogadorAtual.getPerdeuTurno() && jogadorAtual.getStand()) {
+                jogadorAtual.setJogadorAtual(true);
                 return jogadorAtual;
             }
         }
