@@ -7,7 +7,7 @@ import com.example.demo.model.Table;
 import com.example.demo.repository.BlackJackRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +24,10 @@ public class BlackjackGameService implements BlackJackRepository {
     }
     public Deck getDeck(){
         return mesa.getDeck();
+    }
+
+    public Table getMesa() {
+        return mesa;
     }
 
     @Override
@@ -58,7 +62,6 @@ public class BlackjackGameService implements BlackJackRepository {
         int pontuacaoJogador = jogadorNovo.calcularPontuacao();
         if ( pontuacaoJogador > 21) {
             jogadorNovo.setPerdeuTurno();
-            jogadorNovo.setJogadorAtual(false);
             return false;
         }
         return true;
