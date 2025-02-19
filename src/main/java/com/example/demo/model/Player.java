@@ -2,6 +2,7 @@ package com.example.demo.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Player {
 
@@ -96,13 +97,6 @@ public class Player {
         return mao;
     }
 
-    public boolean getStand() {
-        return !stand;
-    }
-
-    public boolean getPerdeuTurno() {
-        return !perdeuTurno;
-    }
 
     public void encerrarMao(){
         stand  = true;
@@ -132,4 +126,22 @@ public class Player {
         }
         return sb.toString();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Player other = (Player) obj;
+        return Objects.equals(this.getNome().trim().toLowerCase(), other.getNome().trim().toLowerCase());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getNome());  // Definindo um critério consistente para hashCode
+    }
+
 }
