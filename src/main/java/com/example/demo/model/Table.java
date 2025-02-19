@@ -1,24 +1,32 @@
 package com.example.demo.model;
 
-import java.util.Iterator;
-import java.util.LinkedList;
+import com.example.demo.utils.ListaDuplamenteEncadeada;
+
 import java.util.List;
 
 public class Table {
-    private  LinkedList<Player> jogadores;
-    private  Deck deck;
+    private ListaDuplamenteEncadeada<Player> jogadores;
+    private Deck deck;
     private boolean jogoIniciado;
-    private Iterator<Player> iterador;
+    private Player jogadorAtual;
 
     public Table() {
-        this.jogadores = new LinkedList<>();
+        this.jogadores = new ListaDuplamenteEncadeada<>();
         adicionarJogador(new Player("Crupîe"));
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
+        this.jogadorAtual = null;
     }
 
+    public Player getJogadorAtual() {
+        return jogadorAtual;
+    }
 
-    public void setJogadores(LinkedList<Player> jogadores) {
+    public void setJogadorAtual(Player jogadorAtual) {
+        this.jogadorAtual = jogadorAtual;
+    }
+
+    public void setJogadores(ListaDuplamenteEncadeada<Player> jogadores) {
         this.jogadores = jogadores;
     }
 
@@ -30,42 +38,26 @@ public class Table {
         this.jogoIniciado = jogoIniciado;
     }
 
-    public Iterator<Player> getIterador() {
-        return iterador;
-    }
-
-    public void setIterador(Iterator<Player> iterador) {
-        this.iterador = iterador;
-    }
-
-    public List<Player> getJogadores() {
-        return jogadores;
+    public Object[] getJogadores() {
+        return jogadores.retornArrayData();
     }
 
     public boolean adicionarJogador(Player jogador) {
         if (!jogoIniciado) {
-            jogadores.add(jogador);
+            jogadores.addLast(jogador);
             return true;
         }
         return false;
     }
 
-    public Player encontrarJogador(String name){
-        for (Player jogador : jogadores) {
-            if (jogador.getNome().equals(name)) {
-                return jogador;
-            }
-        }
-        return null;
-    }
+    public Player encontrarJogador(Player jogador) {
+        ListaDuplamenteEncadeada<Player>.Nodo jogadorAchado = jogadores.searchNodo(jogador);
 
-    public Player encontrarJogadorAtual(){
-        for (Player jogador : jogadores) {
-            if (jogador.isJogadorAtual()){
-                return jogador;
-            }
+        // Verifica se o jogador foi encontrado no Nodo e retorna o jogador
+        if (jogadorAchado != null) {
+            return (Player) jogadorAchado.getData(); // Retorna o objeto Player encontrado
         }
-        return null;
+        return null; // Retorna null caso o jogador não seja encontrado
     }
 
     public boolean isJogoIniciado() {
@@ -76,7 +68,7 @@ public class Table {
         if (!jogadores.isEmpty()) {
             setJogoIniciado(true);
             deck.embaralhar();
-            iterador = jogadores.iterator();
+            jogadorAtual = (Player) jogadores.PeekFirst(); // Corrigido para fazer o cast corretamente
         }
     }
 
@@ -85,46 +77,63 @@ public class Table {
     }
 
     public Player proximoJogador() {
-        if (!jogoIniciado) {
+        if (!jogoIniciado || jogadores.isEmpty()) {
             return null;
         }
 
-        if (!iterador.hasNext()) {
-            iterador = jogadores.iterator(); // Reinicia a iteração
+        Player jogadorAnterior = jogadorAtual;
+
+        // Começa do primeiro jogador caso jogadorAtual seja null
+        if (jogadorAtual == null) {
+            jogadorAtual = (Player) jogadores.PeekFirst();
         }
 
-        while (iterador.hasNext()) {
-            Player jogadorAtual = iterador.next();
-            if (jogadorAtual.getPerdeuTurno() && jogadorAtual.getStand()) {
-                jogadorAtual.setJogadorAtual(true);
-                return jogadorAtual;
+        // Obtém todos os nodos de uma vez
+        List<ListaDuplamenteEncadeada<Player>.Nodo> nodos = jogadores.getAllNodos();
+
+        // Itera pelos nodos para encontrar o próximo jogador válido
+        for (ListaDuplamenteEncadeada<Player>.Nodo nodo : nodos) {
+            Player jogador = (Player) nodo.getData(); // Acessa o jogador no nodo atual
+            // Verifica se o jogador não perdeu o turno e se não deu stand
+            if (!jogador.isPerdeuTurno() && !jogador.isStand()) {
+                // Atualiza o estado do jogador anterior
+                if (jogadorAnterior != null) {
+                    jogadorAnterior.setJogadorAtual(false); // Define o jogador anterior como false
+                }
+                jogador.setJogadorAtual(true); // Define o novo jogador como atual
+                jogadorAtual = jogador; // Atualiza o jogador atual
+                return jogadorAtual; // Retorna o próximo jogador válido
             }
         }
+        // Caso não tenha encontrado um jogador válido
         return null;
     }
 
-    public void eliminarJogador(String nome) {
-        Player jogador = encontrarJogador(nome);
+
+    public void eliminarJogador(Player player) {
+        Player jogador = encontrarJogador(player);
         if (jogador != null) {
             jogador.setPerdeuTurno();
         }
     }
 
-    public void encerrarMao(String name){
-        Player jogador = encontrarJogador(name);
-        if (jogador != null) {
-            jogador.encerrarMao();
+    public void encerrarMao(Player player) {
+        // Encontra o jogador na lista
+        Player jogadorNodo = encontrarJogador(player);
+        // Verifica se o jogador foi encontrado
+        if (jogadorNodo != null) {
+            jogadorNodo.encerrarMao();
         }
     }
+
 
     public boolean todosJogadoresEncerraramMao() {
-        for (Player jogador : jogadores) {
-            if (jogador.getStand()) {  // Verifique se o jogador não encerrou a mão
-                return true;
+        for (Object obj : getJogadores()) {
+            Player jogador = (Player) obj;  // Cast para Jogador
+            if (!jogador.isStand()) {  // Verifique se o jogador não encerrou a mão
+                return false;
             }
         }
-        return false;
+        return true;
     }
-
-
 }
