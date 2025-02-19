@@ -103,13 +103,14 @@ public class BlackjackController {
         Player jogador = request.getPlayer();
         String jogada = request.getJogada();
 
-        // Validação de parâmetros nulos
         if (jogador == null || jogada == null) {
             response.put("mensagem", "Jogador ou jogada inválida.");
             return ResponseEntity.badRequest().body(response);
         }
 
-        // Verifica se a jogada é válida
+        System.out.println("Jogador: " + jogador.getNome() + " fez a jogada: " + jogada);
+
+        // Realiza a jogada
         boolean jogadaValida = gameFunctions.jogada(jogador, jogada);
         if (jogadaValida) {
             response.put("mensagem", "Jogada realizada com sucesso para " + jogador.getNome());
@@ -120,10 +121,30 @@ public class BlackjackController {
         // Verifica se todos os jogadores encerraram a mão
         if (gameFunctions.verificarTodosEncerraram()) {
             response.put("mensagem", "Todos os jogadores encerraram a mão. O jogo foi finalizado.");
-            gameFunctions.finalizarJogo();  // Finaliza o jogo, se necessário
+            gameFunctions.finalizarJogo();
+            return ResponseEntity.ok(response);
+        }
+        // Verifica se há jogadores válidos para a próxima jogada
+        Player proximo = gameFunctions.proximoJogador();
+        if (proximo != null) {
+            response.put("mensagem", "Próximo jogador: " + proximo.getNome());
+        } else {
+            // Caso não haja mais jogadores válidos, finaliza o jogo
+            response.put("mensagem", "Não há jogadores válidos restantes. O jogo foi finalizado.");
+            gameFunctions.finalizarJogo();
         }
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("partidaIniciada")
+    public ResponseEntity<Map<String, String>> partidaIniciada() {
+        Map<String, String> response = new HashMap<>();
+        boolean jogoIniciado = gameFunctions.getMesa().isJogoIniciado();
+        // Se o jogo foi iniciado, responda com "true", senão "false"
+        response.put("jogoIniciado", String.valueOf(jogoIniciado));
+        return ResponseEntity.ok(response);
+    }
+
 
 }
 
