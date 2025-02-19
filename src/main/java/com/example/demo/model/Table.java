@@ -22,6 +22,8 @@ public class Table {
         return jogadorAtual;
     }
 
+
+
     public void setJogadorAtual(Player jogadorAtual) {
         this.jogadorAtual = jogadorAtual;
     }
@@ -81,16 +83,14 @@ public class Table {
             return null;
         }
 
-        Player jogadorAnterior = jogadorAtual;
-
-        // Começa do primeiro jogador caso jogadorAtual seja null
+        // Verifica se jogadorAtual é nulo, caso seja, define o primeiro jogador como atual
         if (jogadorAtual == null) {
             jogadorAtual = (Player) jogadores.PeekFirst();
         }
-
         // Obtém todos os nodos de uma vez
         List<ListaDuplamenteEncadeada<Player>.Nodo> nodos = jogadores.getAllNodos();
-
+        // Variável para armazenar o jogador anterior
+        Player jogadorAnterior = null;
         // Itera pelos nodos para encontrar o próximo jogador válido
         for (ListaDuplamenteEncadeada<Player>.Nodo nodo : nodos) {
             Player jogador = (Player) nodo.getData(); // Acessa o jogador no nodo atual
@@ -100,14 +100,18 @@ public class Table {
                 if (jogadorAnterior != null) {
                     jogadorAnterior.setJogadorAtual(false); // Define o jogador anterior como false
                 }
-                jogador.setJogadorAtual(true); // Define o novo jogador como atual
+                // Define o novo jogador como atual
+                jogador.setJogadorAtual(true);
                 jogadorAtual = jogador; // Atualiza o jogador atual
                 return jogadorAtual; // Retorna o próximo jogador válido
             }
+            // Atualiza o jogador anterior para o próximo jogador
+            jogadorAnterior = jogador;
         }
         // Caso não tenha encontrado um jogador válido
         return null;
     }
+
 
 
     public void eliminarJogador(Player player) {
