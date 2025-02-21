@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.blackjack.model;
 
 import java.util.Collections;
 import java.util.LinkedList;

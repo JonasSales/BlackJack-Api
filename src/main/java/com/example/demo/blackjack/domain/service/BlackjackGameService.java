@@ -1,10 +1,10 @@
-package com.example.demo.service;
+package com.example.demo.blackjack.domain.service;
 
-import com.example.demo.model.Card;
-import com.example.demo.model.Deck;
-import com.example.demo.model.Player;
-import com.example.demo.model.Table;
-import com.example.demo.repository.BlackJackRepository;
+import com.example.demo.blackjack.model.Card;
+import com.example.demo.blackjack.model.Deck;
+import com.example.demo.blackjack.model.Player;
+import com.example.demo.blackjack.model.Table;
+import com.example.demo.blackjack.domain.repository.BlackJackRepository;
 import org.springframework.stereotype.Service;
 
 

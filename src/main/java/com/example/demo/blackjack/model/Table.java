@@ -1,6 +1,6 @@
-package com.example.demo.model;
+package com.example.demo.blackjack.model;
 
-import com.example.demo.utils.ListaDuplamenteEncadeada;
+import com.example.demo.blackjack.utils.ListaDuplamenteEncadeada;
 
 import java.util.List;
 

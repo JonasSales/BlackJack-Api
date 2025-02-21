@@ -1,9 +1,9 @@
-package com.example.demo.controller;
+package com.example.demo.blackjack.api.controller;
 
-import com.example.demo.DTO.playerRequest;
-import com.example.demo.model.Card;
-import com.example.demo.model.Player;
-import com.example.demo.service.BlackjackGameService;
+import com.example.demo.blackjack.api.DTO.playerRequest;
+import com.example.demo.blackjack.model.Card;
+import com.example.demo.blackjack.model.Player;
+import com.example.demo.blackjack.domain.service.BlackjackGameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
