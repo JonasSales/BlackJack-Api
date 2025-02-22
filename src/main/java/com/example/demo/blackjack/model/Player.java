@@ -1,12 +1,19 @@
 package com.example.demo.blackjack.model;
 
+import com.example.demo.auth.dto.UserDTO;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Getter
+@Setter
+
 public class Player {
 
-    private String nome;
+    private UserDTO user;
     private List<Card> mao = new ArrayList<>();
     private boolean perdeuTurno = false;
     private boolean stand = false;
@@ -18,56 +25,6 @@ public class Player {
 
     }
 
-    public Player(String nome, List<Card> mao, boolean perdeuTurno, boolean stand, boolean jogadorAtual, int pontuacao) {
-        this.nome = nome;
-        this.mao = mao;
-        this.perdeuTurno = perdeuTurno;
-        this.stand = stand;
-        this.jogadorAtual = jogadorAtual;
-        this.pontuacao = pontuacao;
-    }
-
-    public Player(String nome) {
-        this.nome = nome;
-    }
-
-    public Player(String nome, boolean jogadorAtual) {
-        this.nome = nome;
-        this.jogadorAtual = jogadorAtual;
-    }
-
-    public boolean isPerdeuTurno() {
-        return perdeuTurno;
-    }
-
-    public boolean isStand() {
-        return stand;
-    }
-
-    public void setMao(List<Card> mao) {
-        this.mao = mao;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public int getPontuacao() {
-        return pontuacao;
-    }
-
-    public void setJogadorAtual(boolean jogadorAtual) {
-        this.jogadorAtual = jogadorAtual;
-    }
-
-
-    public boolean isJogadorAtual() {
-        return jogadorAtual;
-    }
-
-    public void setPontuacao(int pontuacao) {
-        this.pontuacao = pontuacao;
-    }
 
     public int calcularPontuacao() {
         int pontos = 0;
@@ -92,19 +49,14 @@ public class Player {
     }
 
 
-
-    public List<Card> getMao() {
-        return mao;
+    public String getName(){
+        return user.getName();
     }
-
 
     public void encerrarMao(){
         stand  = true;
     }
 
-    public String getNome() {
-        return nome;
-    }
 
     public void adicionarCarta(Card carta) {
         mao.add(carta);
@@ -119,7 +71,7 @@ public class Player {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Jogador: ").append(nome).append("\n");
+        sb.append("Jogador: ").append(user.getName()).append("\n");
         sb.append("Cartas: \n");
         for (Card carta : mao) {
             sb.append(carta).append("\n");
@@ -136,12 +88,12 @@ public class Player {
             return false;
         }
         Player other = (Player) obj;
-        return Objects.equals(this.getNome().trim().toLowerCase(), other.getNome().trim().toLowerCase());
+        return Objects.equals(this.user.getName().trim().toLowerCase(), other.user.getName().trim().toLowerCase());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getNome());  // Definindo um critério consistente para hashCode
+        return Objects.hash(user.getName());  // Definindo um critério consistente para hashCode
     }
 
 }
