@@ -25,6 +25,10 @@ public class Player {
 
     }
 
+    public Player(UserDTO userDTO) {
+        this.user = userDTO;
+    }
+
 
     public int calcularPontuacao() {
         int pontos = 0;
@@ -48,10 +52,6 @@ public class Player {
         return pontos;
     }
 
-
-    public String getName(){
-        return user.getName();
-    }
 
     public void encerrarMao(){
         stand  = true;
