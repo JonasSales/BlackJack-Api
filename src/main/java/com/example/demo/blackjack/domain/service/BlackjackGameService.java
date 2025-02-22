@@ -5,6 +5,7 @@ import com.example.demo.blackjack.model.Deck;
 import com.example.demo.blackjack.model.Player;
 import com.example.demo.blackjack.model.Table;
 import com.example.demo.blackjack.domain.repository.BlackJackRepository;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
 @Service
 public class BlackjackGameService implements BlackJackRepository {
 
@@ -24,10 +26,6 @@ public class BlackjackGameService implements BlackJackRepository {
     }
     public Deck getDeck(){
         return mesa.getDeck();
-    }
-
-    public Table getMesa() {
-        return mesa;
     }
 
     @Override
@@ -133,10 +131,6 @@ public class BlackjackGameService implements BlackJackRepository {
         Player jogador = mesa.encontrarJogador(player);
 
         // Verifica se o jogador existe na mesa
-        if (jogador == null) {
-            System.out.println("Jogador não encontrado: " + player.getNome());
-            return false;
-        }
         return switch (jogada.toLowerCase()) {
             case "hit" -> comprarCarta(jogador);
             case "stand" -> encerrarMao(jogador);
