@@ -64,7 +64,6 @@ public class UserController {
 		if (token == null || !token.startsWith("Bearer ")) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		}
-
 		// Remove o prefixo "Bearer " do token
 		token = token.substring(7);
 
