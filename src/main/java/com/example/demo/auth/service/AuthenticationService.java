@@ -26,9 +26,7 @@ public class AuthenticationService {
 
     // Gera e adiciona o token JWT no cabeçalho da resposta
     public String addToken(String email, HttpServletResponse res) {
-        String jwtToken = Jwts.builder()
-                .setSubject(email)
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+        String jwtToken = Jwts.builder().subject(email).expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(secretKey) // Usa a chave secreta gerada de forma segura
                 .compact();
 
@@ -43,9 +41,7 @@ public class AuthenticationService {
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(secretKey)  // Define a chave para validar o JWT
-                .build()
-                .parseClaimsJws(token)  // Parseia o token
-                .getBody();  // Obtém os dados do corpo do JWT
+                .build().parseSignedClaims(token).getPayload();  // Obtém os dados do corpo do JWT
 
         String email = claims.getSubject();  // Extrai o 'email' do token
 

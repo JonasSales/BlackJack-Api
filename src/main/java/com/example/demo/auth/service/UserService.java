@@ -52,4 +52,12 @@ public class UserService {
         }
         return null; // Retorna null se as credenciais estiverem incorretas
     }
+
+    public UserDTO getUser(String email) {
+        User user = repository.findByEmail(email);
+        if (user != null) {
+            return new UserDTO(user);
+        }
+        return null;
+    }
 }

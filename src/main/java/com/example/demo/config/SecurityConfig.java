@@ -46,10 +46,10 @@ public class SecurityConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 // Configura CORS para permitir acesso do domínio 'localhost:5500'
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5500") // Permite requisições de localhost:5500
+                        .allowedOrigins("http://127.0.0.1:5500", "http://localhost:5500") // Permite requisições de localhost:5500
                         .allowedMethods("GET", "POST", "PUT", "DELETE") // Permite os métodos
-                        .allowedHeaders("*") // Permite todos os headers
-                        .allowCredentials(true); // Permite credenciais (como cookies ou cabeçalhos de autorização)
+                        .allowedHeaders("*")
+                        .allowCredentials(true);  // Permite o envio de cookies/autenticação;// Permite todos os headers
             }
         };
     }
