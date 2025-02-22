@@ -1,25 +1,29 @@
 package com.example.demo.auth.dto;
 
 import com.example.demo.auth.model.User;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDTO {
 
     private Long id;
-    private String username;
+    private String name;
     private String email;
 
     public UserDTO(User user) {
         this.id = user.getId();
-        this.username = user.getName();
+        this.name = user.getName();
         this.email = user.getEmail();
     }
 
-    public String getName() {
-        return username;
+    public UserDTO(String name) {
+        this.name = name;
     }
 
     // Getters e setters
