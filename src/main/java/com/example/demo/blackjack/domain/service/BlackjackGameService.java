@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 public class BlackjackGameService implements BlackJackRepository {
 
     private Table mesa;
+
     public BlackjackGameService() {
         this.mesa = new Table(); // Sempre mantém o estado da mesa
     }
@@ -87,7 +88,7 @@ public class BlackjackGameService implements BlackJackRepository {
                 vencedor = jogador;
             }
         }
-        return "O vencedor é " + vencedor.getName() + " com " + vencedor.calcularPontuacao() + " pontos!";
+        return "O vencedor é " + vencedor.getUser().getName() + " com " + vencedor.calcularPontuacao() + " pontos!";
     }
 
 
@@ -135,7 +136,7 @@ public class BlackjackGameService implements BlackJackRepository {
             case "hit" -> comprarCarta(jogador);
             case "stand" -> encerrarMao(jogador);
             default -> {
-                System.out.println("Jogada inválida: " + jogada + " para " + jogador.getName());
+                System.out.println("Jogada inválida: " + jogada + " para " + jogador.getUser().getName());
                 yield false;
             }
         };
