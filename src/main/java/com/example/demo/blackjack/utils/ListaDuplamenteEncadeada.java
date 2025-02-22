@@ -1,4 +1,4 @@
-package com.example.demo.utils;
+package com.example.demo.blackjack.utils;
 
 import java.util.ArrayList;
 import java.util.List;

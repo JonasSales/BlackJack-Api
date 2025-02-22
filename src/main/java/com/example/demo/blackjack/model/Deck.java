@@ -1,9 +1,14 @@
-package com.example.demo.model;
+package com.example.demo.blackjack.model;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+@Getter
+@Setter
 public class Deck {
 
     private LinkedList<Card> cards;

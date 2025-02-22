@@ -1,6 +1,6 @@
-package com.example.demo.DTO;
+package com.example.demo.blackjack.api.DTO;
 
-import com.example.demo.model.Player;
+import com.example.demo.blackjack.model.Player;
 
 public class playerRequest {
     private Player player;

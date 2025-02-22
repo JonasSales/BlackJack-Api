@@ -1,6 +1,6 @@
-package com.example.demo.repository;
+package com.example.demo.blackjack.domain.repository;
 
-import com.example.demo.model.Player;
+import com.example.demo.blackjack.model.Player;
 
 public interface BlackJackRepository {
 

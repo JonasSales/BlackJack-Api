@@ -1,10 +1,11 @@
-package com.example.demo.service;
+package com.example.demo.blackjack.domain.service;
 
-import com.example.demo.model.Card;
-import com.example.demo.model.Deck;
-import com.example.demo.model.Player;
-import com.example.demo.model.Table;
-import com.example.demo.repository.BlackJackRepository;
+import com.example.demo.blackjack.model.Card;
+import com.example.demo.blackjack.model.Deck;
+import com.example.demo.blackjack.model.Player;
+import com.example.demo.blackjack.model.Table;
+import com.example.demo.blackjack.domain.repository.BlackJackRepository;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 
@@ -12,10 +13,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
 @Service
 public class BlackjackGameService implements BlackJackRepository {
 
     private Table mesa;
+
     public BlackjackGameService() {
         this.mesa = new Table(); // Sempre mantém o estado da mesa
     }
@@ -24,10 +27,6 @@ public class BlackjackGameService implements BlackJackRepository {
     }
     public Deck getDeck(){
         return mesa.getDeck();
-    }
-
-    public Table getMesa() {
-        return mesa;
     }
 
     @Override
@@ -89,7 +88,7 @@ public class BlackjackGameService implements BlackJackRepository {
                 vencedor = jogador;
             }
         }
-        return "O vencedor é " + vencedor.getNome() + " com " + vencedor.calcularPontuacao() + " pontos!";
+        return "O vencedor é " + vencedor.getUser().getName() + " com " + vencedor.calcularPontuacao() + " pontos!";
     }
 
 
@@ -133,15 +132,11 @@ public class BlackjackGameService implements BlackJackRepository {
         Player jogador = mesa.encontrarJogador(player);
 
         // Verifica se o jogador existe na mesa
-        if (jogador == null) {
-            System.out.println("Jogador não encontrado: " + player.getNome());
-            return false;
-        }
         return switch (jogada.toLowerCase()) {
             case "hit" -> comprarCarta(jogador);
             case "stand" -> encerrarMao(jogador);
             default -> {
-                System.out.println("Jogada inválida: " + jogada + " para " + jogador.getNome());
+                System.out.println("Jogada inválida: " + jogada + " para " + jogador.getUser().getName());
                 yield false;
             }
         };

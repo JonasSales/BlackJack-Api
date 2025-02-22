@@ -1,9 +1,15 @@
-package com.example.demo.model;
+package com.example.demo.blackjack.model;
 
-import com.example.demo.utils.ListaDuplamenteEncadeada;
+import com.example.demo.auth.dto.UserDTO;
+import com.example.demo.blackjack.utils.ListaDuplamenteEncadeada;
+import lombok.Getter;
+import lombok.Setter;
+
 
 import java.util.List;
 
+@Setter
+@Getter
 public class Table {
     private ListaDuplamenteEncadeada<Player> jogadores;
     private Deck deck;
@@ -12,33 +18,15 @@ public class Table {
 
     public Table() {
         this.jogadores = new ListaDuplamenteEncadeada<>();
-        adicionarJogador(new Player("Crupîe"));
+
+        UserDTO userDTO = new UserDTO("Crupîe");
+
+        adicionarJogador(new Player(userDTO));
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
         this.jogadorAtual = null;
     }
 
-    public Player getJogadorAtual() {
-        return jogadorAtual;
-    }
-
-
-
-    public void setJogadorAtual(Player jogadorAtual) {
-        this.jogadorAtual = jogadorAtual;
-    }
-
-    public void setJogadores(ListaDuplamenteEncadeada<Player> jogadores) {
-        this.jogadores = jogadores;
-    }
-
-    public void setDeck(Deck deck) {
-        this.deck = deck;
-    }
-
-    public void setJogoIniciado(boolean jogoIniciado) {
-        this.jogoIniciado = jogoIniciado;
-    }
 
     public Object[] getJogadores() {
         return jogadores.retornArrayData();
@@ -62,20 +50,12 @@ public class Table {
         return null; // Retorna null caso o jogador não seja encontrado
     }
 
-    public boolean isJogoIniciado() {
-        return jogoIniciado;
-    }
-
     public void iniciarJogo() {
         if (!jogadores.isEmpty()) {
             setJogoIniciado(true);
             deck.embaralhar();
-            jogadorAtual = (Player) jogadores.PeekFirst(); // Corrigido para fazer o cast corretamente
+            jogadorAtual = jogadores.PeekFirst(); // Corrigido para fazer o cast corretamente
         }
-    }
-
-    public Deck getDeck() {
-        return deck;
     }
 
     public Player proximoJogador() {
@@ -85,7 +65,7 @@ public class Table {
 
         // Verifica se jogadorAtual é nulo, caso seja, define o primeiro jogador como atual
         if (jogadorAtual == null) {
-            jogadorAtual = (Player) jogadores.PeekFirst();
+            jogadorAtual = jogadores.PeekFirst();
         }
         // Obtém todos os nodos de uma vez
         List<ListaDuplamenteEncadeada<Player>.Nodo> nodos = jogadores.getAllNodos();
