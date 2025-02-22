@@ -87,7 +87,7 @@ public class BlackjackGameService implements BlackJackRepository {
                 vencedor = jogador;
             }
         }
-        return "O vencedor é " + vencedor.getNome() + " com " + vencedor.calcularPontuacao() + " pontos!";
+        return "O vencedor é " + vencedor.getName() + " com " + vencedor.calcularPontuacao() + " pontos!";
     }
 
 
@@ -135,7 +135,7 @@ public class BlackjackGameService implements BlackJackRepository {
             case "hit" -> comprarCarta(jogador);
             case "stand" -> encerrarMao(jogador);
             default -> {
-                System.out.println("Jogada inválida: " + jogada + " para " + jogador.getNome());
+                System.out.println("Jogada inválida: " + jogada + " para " + jogador.getName());
                 yield false;
             }
         };

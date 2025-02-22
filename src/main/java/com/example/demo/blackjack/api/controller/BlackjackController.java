@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,8 @@ public class BlackjackController {
     public ResponseEntity<Map<String, String>> adicionarJogador(@RequestBody Player jogador) {
         Map<String, String> response = new HashMap<>();
         boolean sucesso = gameFunctions.adicionarJogador(jogador);
-        response.put("message", sucesso ? "Jogador " + jogador.getNome() + " adicionado à mesa!" : "Não foi possível adicionar " + jogador.getNome() + ".");
+        response.put("message", sucesso ? "Jogador " + jogador.getName() +
+                " adicionado à mesa!" : "Não foi possível adicionar " + jogador.getName() + ".");
         return new ResponseEntity<>(response, sucesso ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }
 
@@ -72,7 +74,7 @@ public class BlackjackController {
         }
         Map<String, List<String>> cartasPorJogador = players.stream()
                 .collect(Collectors.toMap(
-                        Player::getNome,
+                        Player::getName,
                         player -> player.getMao().stream()
                                 .map(Card::toString)
                                 .collect(Collectors.toList())
@@ -108,14 +110,14 @@ public class BlackjackController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        System.out.println("Jogador: " + jogador.getNome() + " fez a jogada: " + jogada);
+        System.out.println("Jogador: " + jogador.getName() + " fez a jogada: " + jogada);
 
         // Realiza a jogada
         boolean jogadaValida = gameFunctions.jogada(jogador, jogada);
         if (jogadaValida) {
-            response.put("mensagem", "Jogada realizada com sucesso para " + jogador.getNome());
+            response.put("mensagem", "Jogada realizada com sucesso para " + jogador.getName() );
         } else {
-            response.put("mensagem", "Jogada inválida para " + jogador.getNome());
+            response.put("mensagem", "Jogada inválida para " + jogador.getName());
         }
 
         // Verifica se todos os jogadores encerraram a mão
@@ -127,7 +129,7 @@ public class BlackjackController {
         // Verifica se há jogadores válidos para a próxima jogada
         Player proximo = gameFunctions.proximoJogador();
         if (proximo != null) {
-            response.put("mensagem", "Próximo jogador: " + proximo.getNome());
+            response.put("mensagem", "Próximo jogador: " + jogador.getName() );
         } else {
             // Caso não haja mais jogadores válidos, finaliza o jogo
             response.put("mensagem", "Não há jogadores válidos restantes. O jogo foi finalizado.");
