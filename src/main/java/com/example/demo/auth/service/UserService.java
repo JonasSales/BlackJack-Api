@@ -4,8 +4,10 @@ import com.example.demo.auth.dto.AuthRequest;
 import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.model.User;
 import com.example.demo.auth.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -59,5 +61,25 @@ public class UserService {
             return new UserDTO(user);
         }
         return null;
+    }
+
+    public UserDTO getUserFromToken(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+
+        if (token == null || !token.startsWith("Bearer ")) {
+            return null;
+        }
+        // Remove o prefixo "Bearer " do token
+        token = token.substring(7);
+        // Verifica a autenticação
+        Authentication authentication = authenticationService.getAuthentication(token);
+
+        if (authentication == null) {
+            return null;
+        }
+
+        String username = authentication.getName();
+
+        return getUser(username);
     }
 }
