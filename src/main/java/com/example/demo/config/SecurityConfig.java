@@ -9,8 +9,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -28,29 +26,23 @@ public class SecurityConfig {
         AuthorizationFilter authorizationFilter = new AuthorizationFilter(authenticationService);
 
         http
-                .csrf(AbstractHttpConfigurer::disable) // Desativa a proteção CSRF
+                .csrf(AbstractHttpConfigurer::disable) // Desativa CSRF (se estiver usando apenas APIs REST)
+                .cors(cors -> cors.configurationSource(request -> {
+                    var config = new org.springframework.web.cors.CorsConfiguration();
+                    config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:5500")); // Domínios permitidos
+                    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE"));
+                    config.setAllowCredentials(true); // Permitir envio de cookies
+                    config.setAllowedHeaders(java.util.List.of("Authorization", "Cache-Control", "Content-Type"));
+                    return config;
+                }))
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/auth/**").permitAll()  // Permite acesso sem autenticação
+                                .requestMatchers("/blackjack/**").authenticated()
                                 .anyRequest().authenticated() // Requer autenticação para qualquer outra requisição
                 )
                 .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class); // Registra o AuthorizationFilter
 
         return http.build(); // Necessário para construir a configuração
-    }
-
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                // Configura CORS para permitir acesso do domínio 'localhost:5500'
-                registry.addMapping("/**")
-                        .allowedOrigins("http://127.0.0.1:5500", "http://localhost:5500") // Permite requisições de localhost:5500
-                        .allowedMethods("GET", "POST", "PUT", "DELETE") // Permite os métodos
-                        .allowedHeaders("*")
-                        .allowCredentials(true);  // Permite o envio de cookies/autenticação;// Permite todos os headers
-            }
-        };
     }
 }
