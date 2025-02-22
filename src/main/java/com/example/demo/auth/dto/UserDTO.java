@@ -9,11 +9,17 @@ import lombok.Setter;
 public class UserDTO {
 
     private Long id;
+    private String username;
     private String email;
 
     public UserDTO(User user) {
         this.id = user.getId();
+        this.username = user.getName();
         this.email = user.getEmail();
+    }
+
+    public String getName() {
+        return username;
     }
 
     // Getters e setters

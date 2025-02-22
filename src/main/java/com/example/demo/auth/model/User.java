@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
 
 
 @Getter
@@ -20,6 +19,11 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+
+    @Column(unique = true)
+    @NotBlank(message = "Nome não pode ser nulo")
+    String name;
+
     @Column(unique = true)
     @NotBlank(message = "Email não pode ser nulo")
     @Email(message = "O email deve ser válido")
