@@ -1,5 +1,6 @@
 package com.example.demo.blackjack.model;
 
+import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.blackjack.utils.ListaDuplamenteEncadeada;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,10 @@ public class Table {
 
     public Table() {
         this.jogadores = new ListaDuplamenteEncadeada<>();
-        adicionarJogador(new Player());
+
+        UserDTO userDTO = new UserDTO("Crupîe");
+
+        adicionarJogador(new Player(userDTO));
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
         this.jogadorAtual = null;
