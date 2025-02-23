@@ -32,7 +32,8 @@ public class User {
     String password;
 
     @NotBlank
-    String role;
+    String role = "USER"; // Valor padrão definido aqui
+
 
     public User() {
 
