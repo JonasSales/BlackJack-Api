@@ -1,37 +1,32 @@
 package com.example.demo.blackjack.domain.service;
 
 import com.example.demo.blackjack.model.Card;
-import com.example.demo.blackjack.model.Deck;
 import com.example.demo.blackjack.model.Player;
 import com.example.demo.blackjack.model.Table;
 import com.example.demo.blackjack.domain.repository.BlackJackRepository;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 
-
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 @Service
 public class BlackjackGameService implements BlackJackRepository {
 
-    private Table mesa;
+    private Map<UUID, Table> mesas;  // Mapa de mesas com UUID como chave
 
     public BlackjackGameService() {
-        this.mesa = new Table(); // Sempre mantém o estado da mesa
-    }
-    public boolean adicionarJogador(Player jogador) {
-        return mesa.adicionarJogador(jogador);
-    }
-    public Deck getDeck(){
-        return mesa.getDeck();
+        this.mesas = new HashMap<>(); // Inicializa o mapa de mesas
     }
 
-    @Override
-    public void iniciarJogo() {
-        if (!mesa.isJogoIniciado()) {
+
+
+    public void iniciarJogo(UUID idMesa) {
+        Table mesa = encontrarMesaPorId(idMesa);
+        if (mesa != null && !mesa.getJogoIniciado()) {
             mesa.iniciarJogo();
             List<Object> jogadores = List.of(mesa.getJogadores());
 
@@ -43,113 +38,124 @@ public class BlackjackGameService implements BlackJackRepository {
                 jogador2.calcularPontuacao();
             }
             // Definindo o primeiro jogador como o jogador atual
-            if (!jogadores.isEmpty()) {
-                Player primeiroJogador = (Player) jogadores.getFirst();
-                primeiroJogador.setJogadorAtual(true);
-            }
+            Player primeiroJogador = (Player) jogadores.getFirst();
+            primeiroJogador.setJogadorAtual(true);
         }
     }
 
     @Override
-    public boolean comprarCarta(Player jogador) {
-        Player jogadorNovo = mesa.encontrarJogador(jogador);
-        Card carta = mesa.getDeck().distribuirCarta();
-        jogadorNovo.adicionarCarta(carta);
-        int pontuacaoJogador = jogadorNovo.calcularPontuacao();
-        if ( pontuacaoJogador > 21) {
-            jogadorNovo.setPerdeuTurno();
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String finalizarJogo() {
-        // Filtrando jogadores que não perderam o turno
-        List<Player> jogadoresAtivos = Arrays.stream(mesa.getJogadores())
-                .filter(obj -> obj instanceof Player)  // Garantindo que é um Player
-                .map(obj -> (Player) obj)              // Fazendo o cast para Player
-                .filter(jogador -> !jogador.isPerdeuTurno()) // Filtrando jogadores que não perderam o turno
-                .toList();         // Coletando os Players em uma lista
-
-        // Se não houver jogadores ativos, significa que todos perderam
-        if (jogadoresAtivos.isEmpty()) {
-            return "Todos os jogadores estouraram. Ninguém venceu.";
-        }
-        // Inicializando o vencedor como o primeiro jogador ativo
-        Player vencedor = jogadoresAtivos.getFirst();
-        // Encontrando o jogador com maior pontuação
-        for (Player jogador : jogadoresAtivos) {
-            if (jogador.calcularPontuacao() > vencedor.calcularPontuacao()) {
-                vencedor = jogador;
+    public boolean comprarCarta(Player jogador, UUID idMesa) {
+        Table mesa = encontrarMesaPorId(idMesa);
+        if (mesa != null) {
+            Player jogadorNovo = mesa.encontrarJogador(jogador);
+            Card carta = mesa.getDeck().distribuirCarta();
+            jogadorNovo.adicionarCarta(carta);
+            int pontuacaoJogador = jogadorNovo.calcularPontuacao();
+            if (pontuacaoJogador > 21) {
+                jogadorNovo.setPerdeuTurno();
+                return false;
             }
-        }
-        return "O vencedor é " + vencedor.getUser().getName() + " com " + vencedor.calcularPontuacao() + " pontos!";
-    }
-
-
-    public Player proximoJogador() {
-        return mesa.proximoJogador();
-    }
-
-    public void eliminarJogador(Player jogador) {
-        mesa.eliminarJogador(jogador);
-    }
-
-    public List<Player> getJogadores() {
-        // Fazendo o cast de Object[] para List<Player>
-        return Arrays.stream(mesa.getJogadores())
-                .filter(obj -> obj instanceof Player)  // Garantindo que é um Player
-                .map(obj -> (Player) obj)              // Cast para Player
-                .collect(Collectors.toList());         // Coletando os Players em uma lista
-    }
-
-
-    public boolean encerrarMao(Player jogador){
-        jogador = mesa.encontrarJogador(jogador);
-        if (jogador != null) {
-            jogador.encerrarMao();
-            jogador.setJogadorAtual(false);
             return true;
         }
         return false;
     }
 
-    public void resetarJogo() {
-        mesa = new Table();
+    @Override
+    public String finalizarJogo(UUID idMesa) {
+        Table mesa = encontrarMesaPorId(idMesa);
+        if (mesa != null) {
+            // Obtendo a lista de jogadores ativos (aqueles que não perderam o turno)
+            List<Player> jogadoresAtivos = mesa.getJogadores().stream()
+                    .filter(jogador -> !jogador.isPerdeuTurno())  // Filtrando jogadores que não perderam o turno
+                    .toList();  // Coletando os Players em uma lista
 
+            // Se não houver jogadores ativos, significa que todos perderam
+            if (jogadoresAtivos.isEmpty()) {
+                return "Todos os jogadores estouraram. Ninguém venceu.";
+            }
+
+            // Inicializando o vencedor como o primeiro jogador ativo
+            Player vencedor = jogadoresAtivos.getFirst();
+
+            // Encontrando o jogador com maior pontuação
+            for (Player jogador : jogadoresAtivos) {
+                if (jogador.calcularPontuacao() > vencedor.calcularPontuacao()) {
+                    vencedor = jogador;
+                }
+            }
+            return "O vencedor é " + vencedor.getUser().getName() + " com " + vencedor.calcularPontuacao() + " pontos!";
+        }
+        return "Mesa não encontrada.";
     }
 
-    public boolean verificarTodosEncerraram() {
-        return mesa.todosJogadoresEncerraramMao();
+    public Player proximoJogador(UUID idMesa) {
+        Table mesa = encontrarMesaPorId(idMesa);
+        if (mesa != null) {
+            return mesa.proximoJogador();
+        }
+        return null;
     }
 
-    public boolean jogada(Player player, String jogada) {
-        System.out.println("Iniciando jogada para o jogador: " + player.getUser().getName());
-
-        // Remove espaços em branco no início e fim da string
-        jogada = jogada.trim();
-        System.out.println("Ação recebida: '" + jogada + "'");
-
-        Player jogador = mesa.encontrarJogador(player);
-
-        if (jogador == null) {
-            System.out.println("Erro: Jogador não encontrado na mesa.");
-            return false;
+    public List<Player> getJogadores(UUID idMesa) {
+        Table mesa = encontrarMesaPorId(idMesa);
+        if (mesa != null) {
+            return mesa.getJogadores();
         }
+        return new ArrayList<>();
+    }
 
-        System.out.println("Jogador encontrado: " + jogador.getUser().getName());
 
-        if (jogada.equalsIgnoreCase("hit")) {
-            comprarCarta(jogador);
-            return true;
-        } else if (jogada.equalsIgnoreCase("stand")) {
-            encerrarMao(jogador);
-            return true;
+    public boolean encerrarMao(Player jogador, UUID idMesa) {
+        Table mesa = encontrarMesaPorId(idMesa);
+        if (mesa != null) {
+            jogador = mesa.encontrarJogador(jogador);
+            if (jogador != null) {
+                jogador.encerrarMao();
+                jogador.setJogadorAtual(false);
+                return true;
+            }
         }
-
-        System.out.println("Erro: Jogada inválida. Use 'hit' ou 'stand'.");
         return false;
     }
 
+
+    public boolean verificarTodosEncerraram(UUID idMesa) {
+        Table mesa = encontrarMesaPorId(idMesa);
+        if (mesa != null) {
+            return mesa.todosJogadoresEncerraramMao();
+        }
+        return false;
+    }
+
+    public boolean jogada(Player player, String jogada, UUID idMesa) {
+        Table mesa = encontrarMesaPorId(idMesa);
+        if (mesa != null) {
+            jogada = jogada.trim();
+            Player jogador = mesa.encontrarJogador(player);
+            if (jogador == null) {
+                return false;
+            }
+            if (jogada.equalsIgnoreCase("hit")) {
+                comprarCarta(jogador, idMesa);
+                return true;
+            } else if (jogada.equalsIgnoreCase("stand")) {
+                encerrarMao(jogador, idMesa);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Table criarNovaMesa() {
+        Table mesa = new Table();
+        UUID mesaId = UUID.randomUUID();
+        mesa.setId(mesaId);
+        mesas.put(mesaId, mesa);
+        return mesa;
+    }
+
+
+    public Table encontrarMesaPorId(UUID id) {
+        return mesas.get(id);
+    }
 }
