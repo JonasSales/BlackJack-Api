@@ -21,9 +21,7 @@ public class Player {
     private int pontuacao = 0;
 
 
-    public Player() {
 
-    }
 
     public Player(UserDTO userDTO) {
         this.user = userDTO;
