@@ -29,7 +29,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Desativa CSRF (se estiver usando apenas APIs REST)
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new org.springframework.web.cors.CorsConfiguration();
-                    config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:5500")); // Domínios permitidos
+                    config.setAllowedOrigins(java.util.List.of(
+                            "http://localhost:3000",
+                            "http://localhost:5500",
+                            "http://127.0.0.1:5500")); // Domínios permitidos
                     config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE"));
                     config.setAllowCredentials(true); // Permitir envio de cookies
                     config.setAllowedHeaders(java.util.List.of("Authorization", "Cache-Control", "Content-Type"));
