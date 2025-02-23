@@ -50,9 +50,6 @@ public class BlackjackGameService implements BlackJackRepository {
         }
     }
 
-
-
-
     @Override
     public boolean comprarCarta(Player jogador) {
         Player jogadorNovo = mesa.encontrarJogador(jogador);
@@ -65,7 +62,6 @@ public class BlackjackGameService implements BlackJackRepository {
         }
         return true;
     }
-
 
     @Override
     public String finalizarJogo() {
@@ -129,17 +125,31 @@ public class BlackjackGameService implements BlackJackRepository {
     }
 
     public boolean jogada(Player player, String jogada) {
+        System.out.println("Iniciando jogada para o jogador: " + player.getUser().getName());
+
+        // Remove espaços em branco no início e fim da string
+        jogada = jogada.trim();
+        System.out.println("Ação recebida: '" + jogada + "'");
+
         Player jogador = mesa.encontrarJogador(player);
 
-        // Verifica se o jogador existe na mesa
-        return switch (jogada.toLowerCase()) {
-            case "hit" -> comprarCarta(jogador);
-            case "stand" -> encerrarMao(jogador);
-            default -> {
-                System.out.println("Jogada inválida: " + jogada + " para " + jogador.getUser().getName());
-                yield false;
-            }
-        };
+        if (jogador == null) {
+            System.out.println("Erro: Jogador não encontrado na mesa.");
+            return false;
+        }
+
+        System.out.println("Jogador encontrado: " + jogador.getUser().getName());
+
+        if (jogada.equalsIgnoreCase("hit")) {
+            comprarCarta(jogador);
+            return true;
+        } else if (jogada.equalsIgnoreCase("stand")) {
+            encerrarMao(jogador);
+            return true;
+        }
+
+        System.out.println("Erro: Jogada inválida. Use 'hit' ou 'stand'.");
+        return false;
     }
 
 }

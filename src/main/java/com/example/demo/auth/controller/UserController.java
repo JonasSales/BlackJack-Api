@@ -20,12 +20,10 @@ import java.security.Principal;
 public class UserController {
 
 	private final UserService userService;
-	private final AuthenticationService authenticationService;
 
 	@Autowired
-	public UserController(UserService userService, AuthenticationService authenticationService) {
+	public UserController(UserService userService) {
 		this.userService = userService;
-		this.authenticationService = authenticationService;
 	}
 
 	// Registro de novo usuário
@@ -58,28 +56,7 @@ public class UserController {
 	// Método para pegar o perfil do usuário autenticado
 	@GetMapping("/profile")
 	public ResponseEntity<UserDTO> getUserProfile(HttpServletRequest request) {
-		// Pega o token da requisição
-		String token = request.getHeader("Authorization");
-
-		if (token == null || !token.startsWith("Bearer ")) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-		}
-		// Remove o prefixo "Bearer " do token
-		token = token.substring(7);
-
-		// Verifica a autenticação
-		Authentication authentication = authenticationService.getAuthentication(token);
-
-		if (authentication == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-		}
-
-		// Pega o nome do usuário a partir do token
-		String username = authentication.getName();
-
-		// Busca o perfil do usuário a partir do nome de usuário
-		UserDTO userDTO = userService.getUser(username);
-
+		UserDTO userDTO = userService.getUserFromToken(request);
 		if (userDTO != null) {
 			return ResponseEntity.ok(userDTO);
 		} else {

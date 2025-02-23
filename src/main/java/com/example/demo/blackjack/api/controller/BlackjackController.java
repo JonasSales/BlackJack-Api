@@ -1,7 +1,6 @@
 package com.example.demo.blackjack.api.controller;
 
 import com.example.demo.auth.dto.UserDTO;
-import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.auth.service.UserService;
 import com.example.demo.blackjack.api.DTO.playerRequest;
 import com.example.demo.blackjack.model.Card;
@@ -10,7 +9,6 @@ import com.example.demo.blackjack.domain.service.BlackjackGameService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -26,12 +24,10 @@ import java.util.stream.Collectors;
 public class BlackjackController {
 
     private final BlackjackGameService gameFunctions;
-    private final AuthenticationService authenticationService;
     private final UserService userService;
 
-    public BlackjackController(BlackjackGameService gameFunctions, AuthenticationService authenticationService, UserService userService) {
+    public BlackjackController(BlackjackGameService gameFunctions, UserService userService) {
         this.gameFunctions = gameFunctions;
-        this.authenticationService = authenticationService;
         this.userService = userService;
     }
 
@@ -55,35 +51,13 @@ public class BlackjackController {
     // Adicionar jogador
     @PostMapping("/adicionar")
     public ResponseEntity<Map<String, String>> adicionarJogador(HttpServletRequest request) {
-
-        String token = request.getHeader("Authorization");
-
-        if (token == null || !token.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-        // Remove o prefixo "Bearer " do token
-        token = token.substring(7);
-
-        // Verifica a autenticação
-        Authentication authentication = authenticationService.getAuthentication(token);
-
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-
-        String username = authentication.getName();
-
-
-        UserDTO userDTO = userService.getUser(username);
-
-
+        UserDTO userDTO = userService.getUserFromToken(request);
         Player jogador = new Player(userDTO);
-
         Map<String, String> response = new HashMap<>();
         boolean sucesso = gameFunctions.adicionarJogador(jogador);
         response.put("message", sucesso ? "Jogador " + jogador.getUser().getName() +
                 " adicionado à mesa!" : "Não foi possível adicionar " + jogador.getUser().getName() + ".");
-        return new ResponseEntity<>(response, sucesso ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, sucesso ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
     }
 
     // Iniciar jogo
@@ -128,49 +102,38 @@ public class BlackjackController {
     }
 
     // Proximo Jogador
-    @GetMapping("/proximoJogador")
+    @PostMapping("/proximoJogador")
     public Player proximoJogador() {
         return gameFunctions.proximoJogador();
     }
 
     // Jogada
     @PostMapping("/jogada")
-    public ResponseEntity<Map<String, String>> jogada(@RequestBody playerRequest request) {
-        Map<String, String> response = new HashMap<>();
-        Player jogador = request.getPlayer();
-        String jogada = request.getJogada();
-
-        if (jogador == null || jogada == null) {
-            response.put("mensagem", "Jogador ou jogada inválida.");
-            return ResponseEntity.badRequest().body(response);
+    public ResponseEntity<String> realizarJogada(HttpServletRequest request, @RequestBody playerRequest jogada) {
+        // Recupera o usuário a partir do token da requisição
+        UserDTO userDTO = userService.getUserFromToken(request);
+        Player jogador = new Player(userDTO);
+        // Executa a jogada e valida se é uma jogada válida
+        boolean jogadaValida = gameFunctions.jogada(jogador, jogada.getJogada());
+        if (!jogadaValida) {
+            String errorMessage = "Jogada inválida para " + jogador.getUser().getName();
+            return ResponseEntity.badRequest().body(errorMessage);
         }
-
-        System.out.println("Jogador: " + jogador.getUser().getName() + " fez a jogada: " + jogada);
-
-        // Realiza a jogada
-        boolean jogadaValida = gameFunctions.jogada(jogador, jogada);
-        if (jogadaValida) {
-            response.put("mensagem", "Jogada realizada com sucesso para " + jogador.getUser().getName() );
-        } else {
-            response.put("mensagem", "Jogada inválida para " + jogador.getUser().getName());
-        }
-
         // Verifica se todos os jogadores encerraram a mão
         if (gameFunctions.verificarTodosEncerraram()) {
-            response.put("mensagem", "Todos os jogadores encerraram a mão. O jogo foi finalizado.");
             gameFunctions.finalizarJogo();
-            return ResponseEntity.ok(response);
+            String finalMessage = "Todos os jogadores encerraram a mão. O jogo foi finalizado.";
+            return ResponseEntity.ok(finalMessage);
         }
-        // Verifica se há jogadores válidos para a próxima jogada
-        Player proximo = gameFunctions.proximoJogador();
-        if (proximo != null) {
-            response.put("mensagem", "Próximo jogador: " + jogador.getUser().getName() );
-        } else {
-            // Caso não haja mais jogadores válidos, finaliza o jogo
-            response.put("mensagem", "Não há jogadores válidos restantes. O jogo foi finalizado.");
+        // Obtém o próximo jogador válido
+        Player proximoJogador = gameFunctions.proximoJogador();
+        if (proximoJogador == null) {
             gameFunctions.finalizarJogo();
+            String finalMessage = "Não há jogadores válidos restantes. O jogo foi finalizado.";
+            return ResponseEntity.ok(finalMessage);
         }
-        return ResponseEntity.ok(response);
+        String nextMessage = "Próximo jogador: " + proximoJogador.getUser().getName();
+        return ResponseEntity.ok(nextMessage);
     }
 
     @GetMapping("partidaIniciada")
@@ -181,6 +144,18 @@ public class BlackjackController {
         response.put("jogoIniciado", String.valueOf(jogoIniciado));
         return ResponseEntity.ok(response);
     }
+
+    /*@PostMapping("/criarMesa")
+    public ResponseEntity<Map<String, String>> criarMesa() {
+        Long mesaId = gameFunctions.criarNovaMesa(); // Criar a mesa e obter ID
+
+        // Gera o token JWT para a mesa
+        String mesaToken = AuthenticationService.generateGameToken(mesaId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Mesa criada com sucesso!");
+        response.put("mesaToken", mesaToken);
+        return ResponseEntity.ok(response);
+    }*/
 
 
 }

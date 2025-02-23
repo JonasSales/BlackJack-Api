@@ -37,6 +37,19 @@ public class AuthenticationService {
         return jwtToken;
     }
 
+    public String gerarTokenMesa(String mesaId, HttpServletResponse res) {
+        String jwtToken = Jwts.builder()
+                .subject(mesaId) // O ID da mesa será o "subject" do token
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(secretKey) // Usa a chave secreta para assinar o token
+                .compact();
+
+        // Adiciona o token JWT nos cabeçalhos da resposta
+        res.addHeader("Authorization", PREFIX + " " + jwtToken);
+        res.addHeader("Access-Control-Expose-Headers", "Authorization");
+        return jwtToken;
+    }
+
     // Verifica e valida o token JWT
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser()
@@ -50,6 +63,8 @@ public class AuthenticationService {
         }
         return null;
     }
+
+
 
     public static class JwtUtil {
         public static SecretKey getSigningKey() {
