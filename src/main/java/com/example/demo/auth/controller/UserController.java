@@ -4,16 +4,17 @@ import com.example.demo.auth.dto.AuthRequest;
 import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.model.User;
 import com.example.demo.auth.service.UserService;
-import com.example.demo.auth.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import com.example.demo.auth.exceptions.AuthExceptions;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/auth")
@@ -28,39 +29,42 @@ public class UserController {
 
 	// Registro de novo usuário
 	@PostMapping("/register")
-	public ResponseEntity<UserDTO> register(@RequestBody User user) {
-		UserDTO userDTO = userService.adicionar(user);
-
-		if (userDTO != null) {
-			// Retorna o UserDTO com status 201 Created
+	public ResponseEntity<?> register(@RequestBody User user) {
+		try {
+			UserDTO userDTO = userService.adicionar(user);
 			return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
-		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		} catch (AuthExceptions.UserAlreadyExistsException e) {
+			// Retorna um JSON com a mensagem de erro
+			Map<String, String> errorResponse = new HashMap<>();
+			errorResponse.put("message", e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
 	}
 
 	// Login de usuário
 	@PostMapping("/login")
-	public ResponseEntity<String> login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
-		String token = userService.login(authRequest, response);
-
-		if (token != null) {
-			// Retorna o token com status 200 OK
-			return ResponseEntity.ok(token);
-		} else {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("Credenciais inválidas");
+	public ResponseEntity<?> login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
+		try {
+			String token = userService.login(authRequest, response);
+			return ResponseEntity.ok(token); // Retorna o token em caso de sucesso
+		} catch (AuthExceptions.InvalidCredentialsException e) {
+			// Retorna um JSON com a mensagem de erro
+			Map<String, String> errorResponse = new HashMap<>();
+			errorResponse.put("message", e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
 		}
 	}
 
+
+
 	// Método para pegar o perfil do usuário autenticado
 	@GetMapping("/profile")
-	public ResponseEntity<UserDTO> getUserProfile(HttpServletRequest request) {
-		UserDTO userDTO = userService.getUserFromToken(request);
-		if (userDTO != null) {
+	public ResponseEntity<?> getUserProfile(HttpServletRequest request) {
+		try {
+			UserDTO userDTO = userService.getUserFromToken(request);
 			return ResponseEntity.ok(userDTO);
-		} else {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		} catch (AuthExceptions.InvalidTokenException | AuthExceptions.UserNotFoundException e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
 		}
 	}
 }
