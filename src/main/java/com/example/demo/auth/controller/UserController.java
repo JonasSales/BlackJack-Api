@@ -20,12 +20,10 @@ import java.security.Principal;
 public class UserController {
 
 	private final UserService userService;
-	private final AuthenticationService authenticationService;
 
 	@Autowired
-	public UserController(UserService userService, AuthenticationService authenticationService) {
+	public UserController(UserService userService) {
 		this.userService = userService;
-		this.authenticationService = authenticationService;
 	}
 
 	// Registro de novo usuário
