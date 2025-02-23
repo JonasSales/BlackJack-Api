@@ -28,21 +28,9 @@ public class AuthenticationService {
     }
 
     // Gera e adiciona o token JWT no cabeçalho da resposta
-    public String addToken(String email, HttpServletResponse res) {
-        String jwtToken = Jwts.builder().subject(email).expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(secretKey) // Usa a chave secreta gerada de forma segura
-                .compact();
-
-        // Adiciona o token JWT nos cabeçalhos da resposta
-        res.addHeader("Authorization", PREFIX + " " + jwtToken);
-        res.addHeader("Access-Control-Expose-Headers", "Authorization");
-
-        return jwtToken;
-    }
-
-    public String gerarTokenMesa(UUID mesaId, HttpServletResponse res) {
+    public String generateToken(String subject, HttpServletResponse res) {
         String jwtToken = Jwts.builder()
-                .subject(mesaId.toString()) // O ID da mesa será o "subject" do token
+                .subject(subject) // O subject pode ser um email ou um ID de mesa
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(secretKey) // Usa a chave secreta para assinar o token
                 .compact();
@@ -50,10 +38,11 @@ public class AuthenticationService {
         // Adiciona o token JWT nos cabeçalhos da resposta
         res.addHeader("Authorization", PREFIX + " " + jwtToken);
         res.addHeader("Access-Control-Expose-Headers", "Authorization");
+
         return jwtToken;
     }
 
-    public UUID validarTokenMesa(String token) {
+    public UUID validateToken(String token) {
         try {
             // Remove o prefixo "Bearer " caso esteja presente
             if (token.startsWith("Bearer ")) {
@@ -67,7 +56,7 @@ public class AuthenticationService {
                     .parseSignedClaims(token)
                     .getPayload();
 
-            // Extrai o ID da mesa do token
+            // Extrai o subject do token (que pode ser um email ou um ID de mesa)
             return UUID.fromString(claims.getSubject());
 
         } catch (ExpiredJwtException e) {
@@ -86,15 +75,13 @@ public class AuthenticationService {
                 .setSigningKey(secretKey)  // Define a chave para validar o JWT
                 .build().parseSignedClaims(token).getPayload();  // Obtém os dados do corpo do JWT
 
-        String email = claims.getSubject();  // Extrai o 'email' do token
+        String subject = claims.getSubject();  // Extrai o 'subject' do token
 
-        if (email != null) {
-            return new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
+        if (subject != null) {
+            return new UsernamePasswordAuthenticationToken(subject, null, new ArrayList<>());
         }
         return null;
     }
-
-
 
     public static class JwtUtil {
         public static SecretKey getSigningKey() {
