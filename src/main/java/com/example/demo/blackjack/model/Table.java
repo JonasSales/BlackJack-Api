@@ -19,26 +19,33 @@ public class Table {
     private boolean jogoIniciado;
     private Player jogadorAtual;
 
+
+    public Table() {
+        this.id = UUID.randomUUID(); // Gera um ID único para o jogo
+        this.jogadores = new ListaDuplamenteEncadeada<>(); // Inicializa a lista de jogadores
+        this.deck = new Deck(Card.criarBaralho(2)); // Inicializa o deck
+        this.jogoIniciado = false; // O jogo não foi iniciado ainda
+        this.jogadorAtual = null; // Nenhum jogador foi definido como atual
+    }
+
     public ArrayList<Player> getJogadores() {
         Object[] objetos = jogadores.retornArrayData();
         ArrayList<Player> jogadoresList = new ArrayList<>();
 
-
+        // Verifica se o array é nulo
+        if (objetos == null) {
+            return jogadoresList; // Retorna uma lista vazia
+        }
+        // Itera sobre o array
         for (Object obj : objetos) {
             if (obj instanceof Player) {
                 jogadoresList.add((Player) obj);  // Realiza o cast seguro
             } else {
-                // Se necessário, tratar casos onde o objeto não é do tipo Player
+                // Trata casos onde o objeto não é do tipo Player
                 System.out.println("Objeto não é um Player: " + obj);
             }
         }
-
         return jogadoresList;
-    }
-
-
-    public Table() {
-
     }
 
     public boolean adicionarJogador(Player jogador) {
