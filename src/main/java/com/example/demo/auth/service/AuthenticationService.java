@@ -1,9 +1,11 @@
 package com.example.demo.auth.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class AuthenticationService {
@@ -37,9 +40,9 @@ public class AuthenticationService {
         return jwtToken;
     }
 
-    public String gerarTokenMesa(String mesaId, HttpServletResponse res) {
+    public String gerarTokenMesa(UUID mesaId, HttpServletResponse res) {
         String jwtToken = Jwts.builder()
-                .subject(mesaId) // O ID da mesa será o "subject" do token
+                .subject(mesaId.toString()) // O ID da mesa será o "subject" do token
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(secretKey) // Usa a chave secreta para assinar o token
                 .compact();
@@ -48,6 +51,33 @@ public class AuthenticationService {
         res.addHeader("Authorization", PREFIX + " " + jwtToken);
         res.addHeader("Access-Control-Expose-Headers", "Authorization");
         return jwtToken;
+    }
+
+    public UUID validarTokenMesa(String token) {
+        try {
+            // Remove o prefixo "Bearer " caso esteja presente
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
+
+            // Decodifica e valida o token
+            Claims claims = Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            // Extrai o ID da mesa do token
+            return UUID.fromString(claims.getSubject());
+
+        } catch (ExpiredJwtException e) {
+            System.out.println("Erro: Token expirado!");
+        } catch (SignatureException e) {
+            System.out.println("Erro: Assinatura do token inválida!");
+        } catch (Exception e) {
+            System.out.println("Erro: Token inválido!");
+        }
+        return null;
     }
 
     // Verifica e valida o token JWT
