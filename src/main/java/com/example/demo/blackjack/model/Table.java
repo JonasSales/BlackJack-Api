@@ -18,10 +18,6 @@ public class Table {
 
     public Table() {
         this.jogadores = new ListaDuplamenteEncadeada<>();
-
-        UserDTO userDTO = new UserDTO("Crupîe");
-
-        adicionarJogador(new Player(userDTO));
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
         this.jogadorAtual = null;
@@ -59,36 +55,55 @@ public class Table {
     }
 
     public Player proximoJogador() {
+        System.out.println("Método proximoJogador() chamado.");
+
         if (!jogoIniciado || jogadores.isEmpty()) {
+            System.out.println("Retornando null: jogo não iniciado ou lista de jogadores vazia.");
             return null;
         }
 
         // Verifica se jogadorAtual é nulo, caso seja, define o primeiro jogador como atual
         if (jogadorAtual == null) {
             jogadorAtual = jogadores.PeekFirst();
+            System.out.println("Jogador atual era null, agora definido como: " + jogadorAtual);
         }
+
         // Obtém todos os nodos de uma vez
         List<ListaDuplamenteEncadeada<Player>.Nodo> nodos = jogadores.getAllNodos();
+        System.out.println("Total de jogadores na lista: " + nodos.size());
+
         // Variável para armazenar o jogador anterior
         Player jogadorAnterior = null;
+
         // Itera pelos nodos para encontrar o próximo jogador válido
         for (ListaDuplamenteEncadeada<Player>.Nodo nodo : nodos) {
             Player jogador = (Player) nodo.getData(); // Acessa o jogador no nodo atual
+            System.out.println("Verificando jogador: " + jogador);
+
             // Verifica se o jogador não perdeu o turno e se não deu stand
             if (!jogador.isPerdeuTurno() && !jogador.isStand()) {
+                System.out.println("Jogador válido encontrado: " + jogador);
+
                 // Atualiza o estado do jogador anterior
                 if (jogadorAnterior != null) {
-                    jogadorAnterior.setJogadorAtual(false); // Define o jogador anterior como false
+                    jogadorAnterior.setJogadorAtual(false);
+                    System.out.println("Definindo jogador anterior como não atual: " + jogadorAnterior);
                 }
+
                 // Define o novo jogador como atual
                 jogador.setJogadorAtual(true);
-                jogadorAtual = jogador; // Atualiza o jogador atual
-                return jogadorAtual; // Retorna o próximo jogador válido
+                jogadorAtual = jogador;
+                System.out.println("Novo jogador atual definido: " + jogadorAtual);
+                return jogadorAtual;
             }
+
+            System.out.println("Jogador não é válido, verificando próximo...");
             // Atualiza o jogador anterior para o próximo jogador
             jogadorAnterior = jogador;
         }
+
         // Caso não tenha encontrado um jogador válido
+        System.out.println("Nenhum jogador válido encontrado, retornando null.");
         return null;
     }
 
