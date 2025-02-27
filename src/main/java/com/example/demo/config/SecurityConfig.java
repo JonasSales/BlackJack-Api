@@ -43,7 +43,9 @@ public class SecurityConfig {
                                 .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/blackjack/criarMesa").permitAll()// Permite acesso sem autenticação
                                 .requestMatchers("/blackjack/mesas").permitAll()
-                                .requestMatchers("/blackjack/mesas/**").authenticated()
+                                .requestMatchers("/blackjack/mesas/{mesaId}").permitAll()
+                                .requestMatchers("/blackjack/mesas/{mesaId}/**").permitAll()
+                                //.requestMatchers("/blackjack/mesas/").authenticated()
                                 .anyRequest().authenticated() // Requer autenticação para qualquer outra requisição
                 )
                 .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class); // Registra o AuthorizationFilter
