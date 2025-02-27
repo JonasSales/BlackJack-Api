@@ -1,7 +1,10 @@
 package com.example.demo.blackjack.model;
 
+import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.blackjack.utils.ListaDuplamenteEncadeada;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,21 +14,30 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @Builder
-
+@Component // Adiciona a anotação @Component para que o Spring gerencie essa classe
 public class Table {
+
     private UUID id;
     private ListaDuplamenteEncadeada<Player> jogadores;
     private Deck deck;
     private boolean jogoIniciado;
     private Player jogadorAtual;
+    private String token;
 
 
-    public Table() {
+    private final AuthenticationService authenticationService;
+
+
+
+    @Autowired // Injeta o AuthenticationService
+    public Table(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
         this.id = UUID.randomUUID(); // Gera um ID único para o jogo
         this.jogadores = new ListaDuplamenteEncadeada<>(); // Inicializa a lista de jogadores
         this.deck = new Deck(Card.criarBaralho(2)); // Inicializa o deck
         this.jogoIniciado = false; // O jogo não foi iniciado ainda
         this.jogadorAtual = null; // Nenhum jogador foi definido como atual
+        this.token = authenticationService.generateToken(this.id.toString()); // Gera o token da mesa
     }
 
     public ArrayList<Player> getJogadores() {
@@ -74,10 +86,7 @@ public class Table {
         }
     }
 
-
-
     public Player proximoJogador() {
-
         if (!jogoIniciado || jogadores.isEmpty()) {
             return null;
         }
@@ -118,8 +127,10 @@ public class Table {
     }
 
     public boolean todosJogadoresEncerraramMao() {
-        for (Object obj : getJogadores()) {
-            Player jogador = (Player) obj;  // Cast para Jogador
+        if (jogadores.isEmpty()) {
+            return false;
+        }
+        for (Player jogador : getJogadores()) {
             if (!jogador.isStand()) {  // Verifique se o jogador não encerrou a mão
                 return false;
             }
@@ -127,8 +138,7 @@ public class Table {
         return true;
     }
 
-    public boolean getJogoIniciado(){
+    public boolean getJogoIniciado() {
         return jogoIniciado;
     }
-
 }
