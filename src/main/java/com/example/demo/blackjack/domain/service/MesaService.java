@@ -1,7 +1,9 @@
 package com.example.demo.blackjack.domain.service;
 
-import com.example.demo.blackjack.model.Player;
+import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.blackjack.model.Table;
+import com.example.demo.blackjack.model.Player;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -10,9 +12,15 @@ import java.util.*;
 public class MesaService {
 
     private final Map<UUID, Table> mesas = new HashMap<>();
+    private final AuthenticationService authenticationService;
+
+    @Autowired
+    public MesaService(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
+    }
 
     public Table criarMesa() {
-        Table mesa = new Table();
+        Table mesa = new Table(authenticationService); // Passa o AuthenticationService para o construtor
         mesas.put(mesa.getId(), mesa);
         return mesa;
     }
@@ -33,10 +41,4 @@ public class MesaService {
         return false;
     }
 
-    public void iniciarJogo(UUID mesaId) {
-        Table mesa = mesas.get(mesaId);
-        if (mesa != null) {
-            mesa.iniciarJogo();
-        }
-    }
 }
