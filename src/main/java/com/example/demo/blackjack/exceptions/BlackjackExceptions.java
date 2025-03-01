@@ -1,6 +1,6 @@
 package com.example.demo.blackjack.exceptions;
 
-import java.util.UUID;
+import com.example.demo.blackjack.model.Table;
 
 import java.util.UUID;
 
@@ -15,7 +15,7 @@ public class BlackjackExceptions {
 
     // Mesa não encontrada
     public static class MesaNaoEncontradaException extends BlackjackException {
-        public MesaNaoEncontradaException(UUID mesaId) {
+        public MesaNaoEncontradaException(Table mesaId) {
             super("Mesa com ID " + mesaId + " não encontrada.");
         }
     }
@@ -69,10 +69,5 @@ public class BlackjackExceptions {
         }
     }
 
-    // Jogo não iniciado
-    public static class JogoNaoIniciadoException extends BlackjackException {
-        public JogoNaoIniciadoException(UUID mesaId) {
-            super("O jogo na mesa " + mesaId + " ainda não foi iniciado.");
-        }
-    }
+
 }
