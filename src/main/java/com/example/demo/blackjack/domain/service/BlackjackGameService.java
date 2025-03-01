@@ -9,7 +9,7 @@ import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Getter
 @Setter
@@ -22,30 +22,25 @@ public class BlackjackGameService implements BlackJackRepository {
         this.mesas = new HashMap<>(); // Inicializa o mapa de mesas
     }
 
-
-
-    public void iniciarJogo(UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
-        if (mesa != null && !mesa.getJogoIniciado()) {
-            mesa.iniciarJogo();
-            List<Object> jogadores = List.of(mesa.getJogadores());
-
-            // Distribuindo cartas para os jogadores
-            for (Object jogador : jogadores) {
-                Player jogador2 = (Player) jogador;
-                jogador2.adicionarCarta(mesa.getDeck().distribuirCarta());
-                jogador2.adicionarCarta(mesa.getDeck().distribuirCarta());
-                jogador2.calcularPontuacao();
+    public void iniciarJogo(Table mesa) {
+        mesa.iniciarJogo();
+        if (mesa.getJogoIniciado()) {
+            ArrayList<Player> jogadores = mesa.getJogadores();
+            // Distribui duas cartas para cada jogador
+            for (Player jogador : jogadores) {
+                jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
+                jogador.adicionarCarta(mesa.getDeck().distribuirCarta());  // Adiciona a segunda carta
+                jogador.calcularPontuacao();
             }
             // Definindo o primeiro jogador como o jogador atual
-            Player primeiroJogador = (Player) jogadores.getFirst();
+            Player primeiroJogador = jogadores.getFirst();
             primeiroJogador.setJogadorAtual(true);
         }
     }
 
     @Override
-    public boolean comprarCarta(Player jogador, UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
+    public boolean comprarCarta(Player jogador,Table mesa) {
+
         if (mesa != null) {
             Player jogadorNovo = mesa.encontrarJogador(jogador);
             Card carta = mesa.getDeck().distribuirCarta();
@@ -53,6 +48,7 @@ public class BlackjackGameService implements BlackJackRepository {
             int pontuacaoJogador = jogadorNovo.calcularPontuacao();
             if (pontuacaoJogador > 21) {
                 jogadorNovo.setPerdeuTurno();
+                mesa.proximoJogador();
                 return false;
             }
             return true;
@@ -61,8 +57,7 @@ public class BlackjackGameService implements BlackJackRepository {
     }
 
     @Override
-    public String finalizarJogo(UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
+    public Player finalizarJogo(Table mesa) {
         if (mesa != null) {
             // Obtendo a lista de jogadores ativos (aqueles que não perderam o turno)
             List<Player> jogadoresAtivos = mesa.getJogadores().stream()
@@ -71,7 +66,8 @@ public class BlackjackGameService implements BlackJackRepository {
 
             // Se não houver jogadores ativos, significa que todos perderam
             if (jogadoresAtivos.isEmpty()) {
-                return "Todos os jogadores estouraram. Ninguém venceu.";
+                mesa.resetarMesa();  // Resetando a mesa e jogadores
+                return null;  // Retornando null, pois não há vencedor
             }
 
             // Inicializando o vencedor como o primeiro jogador ativo
@@ -83,35 +79,18 @@ public class BlackjackGameService implements BlackJackRepository {
                     vencedor = jogador;
                 }
             }
-            return "O vencedor é " + vencedor.getUser().getName() + " com " + vencedor.calcularPontuacao() + " pontos!";
+            return vencedor;  // Retornando o jogador vencedor
         }
-        return "Mesa não encontrada.";
+        return null;  // Retornando null, pois a mesa não foi encontrada
     }
 
-    public Player proximoJogador(UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
-        if (mesa != null) {
-            return mesa.proximoJogador();
-        }
-        return null;
-    }
-
-    public List<Player> getJogadores(UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
-        if (mesa != null) {
-            return mesa.getJogadores();
-        }
-        return new ArrayList<>();
-    }
-
-
-    public boolean encerrarMao(Player jogador, UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
+    public boolean encerrarMao(Player jogador, Table mesa) {
         if (mesa != null) {
             jogador = mesa.encontrarJogador(jogador);
             if (jogador != null) {
                 jogador.encerrarMao();
                 jogador.setJogadorAtual(false);
+                mesa.proximoJogador();
                 return true;
             }
         }
@@ -119,43 +98,29 @@ public class BlackjackGameService implements BlackJackRepository {
     }
 
 
-    public boolean verificarTodosEncerraram(UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
+    public boolean verificarTodosEncerraram(Table mesa) {
         if (mesa != null) {
             return mesa.todosJogadoresEncerraramMao();
         }
         return false;
     }
 
-    public boolean jogada(Player player, String jogada, UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
-        if (mesa != null) {
-            jogada = jogada.trim();
-            Player jogador = mesa.encontrarJogador(player);
-            if (jogador == null) {
-                return false;
-            }
-            if (jogada.equalsIgnoreCase("hit")) {
-                comprarCarta(jogador, idMesa);
-                return true;
-            } else if (jogada.equalsIgnoreCase("stand")) {
-                encerrarMao(jogador, idMesa);
-                return true;
-            }
+    public boolean jogada(Player player, String jogada, Table mesa) {
+        if (mesa == null) {
+            return false;
+        }
+
+        Player jogador = mesa.encontrarJogador(player);
+        if (jogador == null) {
+            return false;
+        }
+        if (jogada.equals("hit")) {
+            comprarCarta(jogador, mesa);
+            return true;
+        } else if (jogada.equals("stand")) {
+            encerrarMao(jogador, mesa);
+            return true;
         }
         return false;
-    }
-
-    public Table criarNovaMesa() {
-        Table mesa = new Table();
-        UUID mesaId = UUID.randomUUID();
-        mesa.setId(mesaId);
-        mesas.put(mesaId, mesa);
-        return mesa;
-    }
-
-
-    public Table encontrarMesaPorId(UUID id) {
-        return mesas.get(id);
     }
 }

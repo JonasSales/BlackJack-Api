@@ -44,6 +44,6 @@ public abstract class LoginFilter extends AbstractAuthenticationProcessingFilter
     protected void successfulAuthentication(HttpServletRequest req, HttpServletResponse res, FilterChain chain, Authentication auth)
             throws IOException, ServletException {
         // Agora utilizando a instância injetada de authenticationService
-        authenticationService.addToken(auth.getName(), res);
+        authenticationService.generateToken(auth.getName(), res);
     }
 }

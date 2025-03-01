@@ -1,7 +1,10 @@
 package com.example.demo.blackjack.model;
 
+import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.blackjack.utils.ListaDuplamenteEncadeada;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,35 +14,68 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @Builder
-
+@Component // Adiciona a anotação @Component para que o Spring gerencie essa classe
 public class Table {
+
     private UUID id;
     private ListaDuplamenteEncadeada<Player> jogadores;
     private Deck deck;
     private boolean jogoIniciado;
     private Player jogadorAtual;
+    private String token;
+    private long tempoInicioContador; // Timestamp de início do contador
+    private int tempoTotalContador;
+
+
+    private final AuthenticationService authenticationService;
+
+    public void iniciarContador(int tempoTotalContador) {
+        this.tempoTotalContador = tempoTotalContador;
+        this.tempoInicioContador = System.currentTimeMillis() / 1000; // Timestamp em segundos
+    }
+
+    @Autowired // Injeta o AuthenticationService
+    public Table(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
+        this.id = UUID.randomUUID(); // Gera um ID único para o jogo
+        this.jogadores = new ListaDuplamenteEncadeada<>(); // Inicializa a lista de jogadores
+        this.deck = new Deck(Card.criarBaralho(2)); // Inicializa o deck
+        this.jogoIniciado = false; // O jogo não foi iniciado ainda
+        this.jogadorAtual = null; // Nenhum jogador foi definido como atual
+        this.token = authenticationService.generateToken(this.id.toString()); // Gera o token da mesa
+        iniciarContador(60);
+    }
+
 
     public ArrayList<Player> getJogadores() {
         Object[] objetos = jogadores.retornArrayData();
         ArrayList<Player> jogadoresList = new ArrayList<>();
 
-
+        // Verifica se o array é nulo
+        if (objetos == null) {
+            return jogadoresList; // Retorna uma lista vazia
+        }
+        // Itera sobre o array
         for (Object obj : objetos) {
             if (obj instanceof Player) {
                 jogadoresList.add((Player) obj);  // Realiza o cast seguro
             } else {
-                // Se necessário, tratar casos onde o objeto não é do tipo Player
+                // Trata casos onde o objeto não é do tipo Player
                 System.out.println("Objeto não é um Player: " + obj);
             }
         }
-
         return jogadoresList;
     }
 
-
-    public Table() {
-
+    public int getTempoRestante() {
+        if (tempoInicioContador == 0) {
+            return 0; // Contador não iniciado
+        }
+        long agora = System.currentTimeMillis() / 1000;
+        int tempoRestante = tempoTotalContador - (int) (agora - tempoInicioContador);
+        return Math.max(tempoRestante, 0); // Retorna 0 se o tempo já acabou
     }
+
 
     public boolean adicionarJogador(Player jogador) {
         if (!jogoIniciado) {
@@ -67,10 +103,7 @@ public class Table {
         }
     }
 
-
-
     public Player proximoJogador() {
-
         if (!jogoIniciado || jogadores.isEmpty()) {
             return null;
         }
@@ -111,8 +144,10 @@ public class Table {
     }
 
     public boolean todosJogadoresEncerraramMao() {
-        for (Object obj : getJogadores()) {
-            Player jogador = (Player) obj;  // Cast para Jogador
+        if (jogadores.isEmpty()) {
+            return false;
+        }
+        for (Player jogador : getJogadores()) {
             if (!jogador.isStand()) {  // Verifique se o jogador não encerrou a mão
                 return false;
             }
@@ -120,8 +155,21 @@ public class Table {
         return true;
     }
 
-    public boolean getJogoIniciado(){
-        return jogoIniciado;
+
+    public void resetarMesa() {
+        // Reinicializa o deck, criando um novo deck embaralhado com as cartas necessárias
+        this.deck = new Deck(Card.criarBaralho(2));
+        // Reinicia o jogo, definindo o status como não iniciado
+        this.jogoIniciado = false;
+        // Define o jogador atual como null, já que o jogo será reiniciado
+        this.jogadorAtual = null;
+
+        this.jogadores = new ListaDuplamenteEncadeada<>();
+
+        iniciarContador(60);
     }
 
+    public boolean getJogoIniciado() {
+        return jogoIniciado;
+    }
 }

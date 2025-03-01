@@ -1,5 +1,6 @@
 package com.example.demo.auth.service;
 
+import com.example.demo.auth.exceptions.AuthExceptions;
 import com.example.demo.auth.dto.AuthRequest;
 import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.model.User;
@@ -11,9 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class UserService {
@@ -31,53 +30,69 @@ public class UserService {
 
     // Adicionar um novo usuário
     public UserDTO adicionar(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return new UserDTO(repository.save(user));
-    }
-
-    // Listar todos os usuários
-    public List<UserDTO> listarTodos() {
-        List<UserDTO> list = new ArrayList<>();
-        for (User user : repository.findAll()) {
-            list.add(new UserDTO(user));
+        // Verifica se o e-mail já está cadastrado
+        if (repository.findByEmail(user.getEmail()) != null) {
+            throw new AuthExceptions.UserAlreadyExistsException("E-mail já cadastrado");
         }
-        return list;
+
+        // Criptografa a senha antes de salvar
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Salva o usuário no banco de dados
+        User savedUser = repository.save(user);
+
+        // Retorna o UserDTO
+        return new UserDTO(savedUser);
     }
 
     // Fazer login (autenticação) e gerar o token JWT
     public String login(AuthRequest authRequest, HttpServletResponse response) {
-        Optional<User> user = Optional.ofNullable(repository.findByEmail(authRequest.getEmail()));
+        // Busca o usuário pelo e-mail
+        User user = repository.findByEmail(authRequest.getEmail());
 
-        if (user.isPresent() && passwordEncoder.matches(authRequest.getPassword(), user.get().getPassword())) {
-            // Usar a injeção do AuthenticationService
-            return authenticationService.addToken(authRequest.getEmail(), response);
+        if (user == null) {
+            throw new AuthExceptions.InvalidCredentialsException("E-mail não encontrado");
         }
-        return null; // Retorna null se as credenciais estiverem incorretas
+
+        // Verifica se a senha está correta
+        if (!passwordEncoder.matches(authRequest.getPassword(), user.getPassword())) {
+            throw new AuthExceptions.InvalidCredentialsException("Senha incorreta");
+        }
+
+        // Gera o token JWT
+        return authenticationService.generateToken(authRequest.getEmail(), response);
     }
 
+    // Obter usuário pelo e-mail
     public UserDTO getUser(String email) {
         User user = repository.findByEmail(email);
-        if (user != null) {
-            return new UserDTO(user);
+
+        if (user == null) {
+            throw new AuthExceptions.UserNotFoundException("Usuário não encontrado");
         }
-        return null;
+
+        return new UserDTO(user);
     }
 
+    // Obter usuário a partir do token
     public UserDTO getUserFromToken(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
 
         if (token == null || !token.startsWith("Bearer ")) {
-            return null;
+            throw new AuthExceptions.InvalidTokenException("Token inválido ou ausente");
         }
+
         // Remove o prefixo "Bearer " do token
         token = token.substring(7);
+
         // Verifica a autenticação
         Authentication authentication = authenticationService.getAuthentication(token);
 
         if (authentication == null) {
-            return null;
+            throw new AuthExceptions.InvalidTokenException("Token inválido ou expirado");
         }
 
+        // Obtém o e-mail do usuário a partir do token
         String username = authentication.getName();
 
         return getUser(username);

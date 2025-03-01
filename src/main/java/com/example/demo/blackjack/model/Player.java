@@ -10,23 +10,31 @@ import java.util.Objects;
 
 @Getter
 @Setter
-
 public class Player {
 
     private UserDTO user;
-    private List<Card> mao = new ArrayList<>();
-    private boolean perdeuTurno = false;
-    private boolean stand = false;
-    private boolean jogadorAtual = false;
-    private int pontuacao = 0;
+    private List<Card> mao;
+    private boolean perdeuTurno;
+    private boolean stand;
+    private boolean jogadorAtual;
+    private int pontuacao;
+    private boolean jogandoAtualmente;
 
-
-
-
-    public Player(UserDTO userDTO) {
-        this.user = userDTO;
+    // Construtor padrão
+    public Player() {
+        this.mao = new ArrayList<>();
+        this.perdeuTurno = false;
+        this.stand = false;
+        this.jogadorAtual = false;
+        this.pontuacao = 0;
+        this.jogandoAtualmente = false;
     }
 
+    // Construtor com UserDTO
+    public Player(UserDTO userDTO) {
+        this();
+        this.user = userDTO;
+    }
 
     public int calcularPontuacao() {
         int pontos = 0;
@@ -50,11 +58,9 @@ public class Player {
         return pontos;
     }
 
-
-    public void encerrarMao(){
-        stand  = true;
+    public void encerrarMao() {
+        stand = true;
     }
-
 
     public void adicionarCarta(Card carta) {
         mao.add(carta);
@@ -64,6 +70,15 @@ public class Player {
     public void setPerdeuTurno() {
         this.perdeuTurno = true;
         this.stand = true;
+    }
+
+    // Método para resetar o jogador criando um novo objeto com o mesmo userDTO
+    public void resetar() {
+        this.mao.clear();  // Limpa as cartas do jogador
+        this.pontuacao = 0;    // Zera a pontuação
+        this.perdeuTurno = false;  // Reinicia o status de "perdeu o turno"
+        this.stand = false;        // Reinicia o status de "stand"
+        this.jogadorAtual = false; // Define o jogador como não sendo o atual
     }
 
     @Override
@@ -78,20 +93,15 @@ public class Player {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        Player other = (Player) obj;
-        return Objects.equals(this.user.getName().trim().toLowerCase(), other.user.getName().trim().toLowerCase());
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Player player = (Player) o;
+        return Objects.equals(this.user.getId(), player.getUser().getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(user.getName());  // Definindo um critério consistente para hashCode
+        return Objects.hash(getUser().getId());
     }
-
 }
