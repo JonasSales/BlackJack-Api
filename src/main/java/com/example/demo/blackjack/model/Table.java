@@ -23,11 +23,16 @@ public class Table {
     private boolean jogoIniciado;
     private Player jogadorAtual;
     private String token;
+    private long tempoInicioContador; // Timestamp de início do contador
+    private int tempoTotalContador;
 
 
     private final AuthenticationService authenticationService;
 
-
+    public void iniciarContador(int tempoTotalContador) {
+        this.tempoTotalContador = tempoTotalContador;
+        this.tempoInicioContador = System.currentTimeMillis() / 1000; // Timestamp em segundos
+    }
 
     @Autowired // Injeta o AuthenticationService
     public Table(AuthenticationService authenticationService) {
@@ -38,7 +43,9 @@ public class Table {
         this.jogoIniciado = false; // O jogo não foi iniciado ainda
         this.jogadorAtual = null; // Nenhum jogador foi definido como atual
         this.token = authenticationService.generateToken(this.id.toString()); // Gera o token da mesa
+        iniciarContador(60);
     }
+
 
     public ArrayList<Player> getJogadores() {
         Object[] objetos = jogadores.retornArrayData();
@@ -59,6 +66,16 @@ public class Table {
         }
         return jogadoresList;
     }
+
+    public int getTempoRestante() {
+        if (tempoInicioContador == 0) {
+            return 0; // Contador não iniciado
+        }
+        long agora = System.currentTimeMillis() / 1000;
+        int tempoRestante = tempoTotalContador - (int) (agora - tempoInicioContador);
+        return Math.max(tempoRestante, 0); // Retorna 0 se o tempo já acabou
+    }
+
 
     public boolean adicionarJogador(Player jogador) {
         if (!jogoIniciado) {
@@ -136,6 +153,20 @@ public class Table {
             }
         }
         return true;
+    }
+
+
+    public void resetarMesa() {
+        // Reinicializa o deck, criando um novo deck embaralhado com as cartas necessárias
+        this.deck = new Deck(Card.criarBaralho(2));
+        // Reinicia o jogo, definindo o status como não iniciado
+        this.jogoIniciado = false;
+        // Define o jogador atual como null, já que o jogo será reiniciado
+        this.jogadorAtual = null;
+
+        this.jogadores = new ListaDuplamenteEncadeada<>();
+
+        iniciarContador(60);
     }
 
     public boolean getJogoIniciado() {
