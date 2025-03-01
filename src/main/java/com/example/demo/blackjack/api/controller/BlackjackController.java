@@ -3,6 +3,7 @@ package com.example.demo.blackjack.api.controller;
 import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.auth.service.UserService;
+import com.example.demo.blackjack.api.DTO.JogadaResponse;
 import com.example.demo.blackjack.api.DTO.playerRequest;
 import com.example.demo.blackjack.domain.service.BlackjackGameService;
 import com.example.demo.blackjack.domain.service.MesaService;
@@ -11,14 +12,10 @@ import com.example.demo.blackjack.model.Card;
 import com.example.demo.blackjack.model.Player;
 import com.example.demo.blackjack.model.Table;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
@@ -38,35 +35,39 @@ public class BlackjackController {
         this.blackjackGameService = blackjackGameService;
     }
 
+       // Endpoint para listar jogadores de uma mesa
     @GetMapping("/mesas/{mesaId}/jogadores")
     public ResponseEntity<List<Player>> listarJogadores(@PathVariable UUID mesaId) {
         Table mesa = mesaService.encontrarMesaPorId(mesaId);
-
         if (mesa == null) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesaId);
+            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
         }
-
-
         return ResponseEntity.ok(mesa.getJogadores());
     }
 
+    // Endpoint para obter o jogador atual
     @GetMapping("/mesas/{mesaId}/jogadoratual")
-    public ResponseEntity<Player> listarJogadoresAtuais(@PathVariable UUID mesaId) {
+    public ResponseEntity<UserDTO> listarJogadoresAtuais(@PathVariable UUID mesaId) {
         Table mesa = mesaService.encontrarMesaPorId(mesaId);
         if (mesa == null) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesaId);
+            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
         }
-        return ResponseEntity.ok(mesa.getJogadorAtual());
+        return ResponseEntity.ok(mesa.getJogadorAtual().getUser());
     }
 
+    // Endpoint para adicionar um jogador à mesa
     @PostMapping("/mesas/{mesaId}/adicionar")
     public ResponseEntity<Map<String, String>> adicionarJogador(@PathVariable UUID mesaId, HttpServletRequest request) {
         UserDTO userDTO = userService.getUserFromToken(request);
         Player jogador = new Player(userDTO);
 
-        boolean sucesso = mesaService.adicionarJogador(mesaId, jogador);
+        if (mesaService.jogadorEstaEmQualquerMesa(jogador)){
+            throw new BlackjackExceptions.JogadorJaNaMesaException(jogador.getUser().getName());
+        }
+        Table mesa = mesaService.encontrarMesaPorId(mesaId);
+        boolean sucesso = mesaService.adicionarJogador(mesa, jogador);
         if (!sucesso) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesaId);
+            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
         }
 
         Map<String, String> response = new HashMap<>();
@@ -74,76 +75,101 @@ public class BlackjackController {
         return ResponseEntity.ok(response);
     }
 
+    // Endpoint para iniciar o jogo
     @PostMapping("/mesas/{mesaId}/iniciar")
     public ResponseEntity<Map<String, String>> iniciarJogo(@PathVariable UUID mesaId) {
         Table mesa = mesaService.encontrarMesaPorId(mesaId);
         Map<String, String> response = new HashMap<>();
-
         if (mesa.getJogadores().size() < 2) {
             response.put("message", "O jogo para começar precisa de ao menos 2 jogadores");
+            mesa.iniciarContador(60);
+            return ResponseEntity.ok(response);
         }
-        mesa.iniciarJogo();
-        blackjackGameService.iniciarJogo(mesa);
-        response.put("message", "Jogo iniciado! Cartas distribuídas!");
-        response.put("mesaToken", mesa.getToken());
+        if (!mesa.getJogoIniciado()) {
+            blackjackGameService.iniciarJogo(mesa);
+            response.put("message", "Jogo iniciado! Cartas distribuídas!");
+            response.put("mesaToken", mesa.getToken());
+        }else {
+            response.put("message", "Jogo iniciado!");
+        }
         return ResponseEntity.ok(response);
     }
 
+    // Endpoint para obter as cartas dos jogadores
     @GetMapping("/mesas/{mesaId}/cartas")
-    public ResponseEntity<Map<String, List<String>>> getCartasDeJogadores(@PathVariable UUID mesaId) {
+    public ResponseEntity<List<Card>> getCartasDeJogadores(@PathVariable UUID mesaId, HttpServletRequest request) {
         Table mesa = mesaService.encontrarMesaPorId(mesaId);
-        if (mesa == null) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesaId);
-        }
-
-        Map<String, List<String>> cartasPorJogador = mesa.getJogadores().stream()
-                .collect(Collectors.toMap(
-                        player -> player.getUser().getName(),
-                        player -> player.getMao().stream()
-                                .map(Card::toString)
-                                .collect(Collectors.toList())
-                ));
-        return ResponseEntity.ok(cartasPorJogador);
-    }
-
-    @PostMapping("/mesas/{mesaId}/jogada")
-    public ResponseEntity<Map<String, String>> realizarJogada(@PathVariable UUID mesaId, HttpServletRequest request, @RequestBody playerRequest jogada) {
         UserDTO userDTO = userService.getUserFromToken(request);
-        Table mesa = mesaService.encontrarMesaPorId(mesaId);
+
         if (mesa == null) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesaId);
+            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
         }
+
         Player jogador = mesa.encontrarJogador(new Player(userDTO));
 
-        Map<String, String> response = new HashMap<>();
-
-        if (blackjackGameService.jogada(jogador, jogada.getJogada(), mesa)) {
-            response.put("mensagem", "Jogada realizada com sucesso.");
-            return ResponseEntity.ok(response);
+        if (jogador == null){
+            throw new BlackjackExceptions.JogadorJaNaMesaException("Jogador não existe");
         }
 
-        if (blackjackGameService.verificarTodosEncerraram(mesaId)) {
-            response.put("mensagem", blackjackGameService.finalizarJogo(mesaId));
-            return ResponseEntity.ok(response);
+        List<Card> cartasDoJogador = jogador.getMao();
+
+        return ResponseEntity.ok(cartasDoJogador);
+    }
+
+    // Endpoint para realizar uma jogada (HIT ou STAND)
+    @PostMapping("/mesas/{mesaId}/jogada")
+    public ResponseEntity<JogadaResponse> realizarJogada(
+            @PathVariable UUID mesaId,
+            HttpServletRequest request,
+            @RequestBody playerRequest jogada) {
+
+        // Obtém o usuário a partir do token
+        UserDTO userDTO = userService.getUserFromToken(request);
+
+        // Encontra a mesa pelo ID
+        Table mesa = mesaService.encontrarMesaPorId(mesaId);
+        if (mesa == null) {
+            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
+        }
+        // Encontra o jogador na mesa
+        Player jogador = mesa.encontrarJogador(new Player(userDTO));
+        if (jogador == null) {
+            throw new BlackjackExceptions.JogadorNaoEncontradoException("Jogador não encontrado na mesa.");
         }
 
-        response.put("mensagem", "Jogada invalida.");
-        return ResponseEntity.ok(response);
+        // Realiza a jogada
+        boolean jogadaRealizada = blackjackGameService.jogada(jogador, jogada.getJogada(), mesa);
+
+        // Prepara a resposta
+        JogadaResponse response = new JogadaResponse();
+        if (jogadaRealizada) {
+            response.setMensagem("Jogada realizada com sucesso.");
+        } else {
+            response.setMensagem("Jogada inválida.");
+        }
+
+        // Verifica se o jogo terminou
+        Player vencedor = null;
+        if (blackjackGameService.verificarTodosEncerraram(mesa)) {
+            vencedor = blackjackGameService.finalizarJogo(mesa);
+            if (vencedor != null) {
+                response.setVencedor(vencedor.getUser().getName());
+                response.setPontuacaoVencedor(vencedor.calcularPontuacao());
+                response.setMensagem("O jogo terminou! O vencedor é: " + vencedor.getUser().getName() + " com "
+                        + vencedor.getPontuacao() + " pontos");
+            } else {
+                response.setMensagem("O jogo terminou! Não houve vencedor.");
+            }
+
+        }
+        if (vencedor != null){
+            mesa.resetarMesa();
+        }
+            return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/criarMesa")
-    public ResponseEntity<Map<String, Object>> criarMesa(HttpServletResponse response) {
-        Table mesa = mesaService.criarMesa();
-        String mesaToken = authenticationService.generateToken(mesa.getId().toString(), response);
-        mesa.setToken(mesaToken);
-        System.out.println(mesaToken);
-        Map<String, Object> mesaInfo = new HashMap<>();
-        mesaInfo.put("mesaId", mesa.getId());
-        mesaInfo.put("token", mesaToken);
 
-        return ResponseEntity.ok(mesaInfo);
-    }
-
+    // Endpoint para acessar uma mesa específica
     @GetMapping("/mesas/{mesaId}")
     public ResponseEntity<?> acessarMesa(@PathVariable UUID mesaId) {
         Table mesa = mesaService.encontrarMesaPorId(mesaId);
@@ -155,10 +181,14 @@ public class BlackjackController {
                 "mesaId", mesa.getId(),
                 "jogoIniciado", mesa.getJogoIniciado(),
                 "quantidadeDeJogadores", mesa.getJogadores().size(),
-                "mesaEncerrada?", mesa.todosJogadoresEncerraramMao()
+                "mesaEncerrada?", mesa.todosJogadoresEncerraramMao(),
+                "jogadores", mesa.getJogadores().stream()
+                        .map(Player::getUser)
+                        .collect(Collectors.toList())
         ));
     }
 
+    // Endpoint para listar todas as mesas
     @GetMapping("/mesas")
     public ResponseEntity<List<Map<String, Object>>> listarMesas() {
         List<Map<String, Object>> mesasInfo = mesaService.listarMesas().stream()
@@ -171,5 +201,19 @@ public class BlackjackController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(mesasInfo);
+    }
+
+    // Endpoint para obter o tempo restante de uma mesa
+    @GetMapping("/mesas/{mesaId}/tempo-restante")
+    public ResponseEntity<Map<String, Integer>> getTempoRestante(@PathVariable UUID mesaId) {
+        Table mesa = mesaService.encontrarMesaPorId(mesaId);
+        if (mesa == null) {
+            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
+        }
+
+        int tempoRestante = mesa.getTempoRestante();
+        Map<String, Integer> response = new HashMap<>();
+        response.put("tempoRestante", tempoRestante);
+        return ResponseEntity.ok(response);
     }
 }
