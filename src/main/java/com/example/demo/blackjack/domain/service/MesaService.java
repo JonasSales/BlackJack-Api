@@ -17,6 +17,7 @@ public class MesaService {
     @Autowired
     public MesaService(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
+        criarNMesas();
     }
 
     public Table criarMesa() {
@@ -33,12 +34,32 @@ public class MesaService {
         return new ArrayList<>(mesas.values());
     }
 
-    public boolean adicionarJogador(UUID mesaId, Player jogador) {
-        Table mesa = mesas.get(mesaId);
+    public boolean adicionarJogador(Table mesa, Player jogador) {
         if (mesa != null) {
+            jogador.setJogandoAtualmente(true);
             return mesa.adicionarJogador(jogador);
         }
         return false;
     }
 
+    private void criarNMesas(){
+        for (int i = 0; i < 10; i++) {
+            criarMesa();
+        }
+    }
+
+    public boolean jogadorEstaEmQualquerMesa(Player jogador) {
+        if (jogador == null) {
+            throw new IllegalArgumentException("Jogador não pode ser nulo.");
+        }
+
+        for (Table mesa : mesas.values()) {
+            for (Player p : mesa.getJogadores()) {
+                if (p.equals(jogador)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
