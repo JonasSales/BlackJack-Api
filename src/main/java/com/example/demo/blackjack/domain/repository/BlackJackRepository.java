@@ -12,6 +12,6 @@ public interface BlackJackRepository {
     boolean comprarCarta(Player jogador, Table idMesa);
 
     // Finaliza o jogo e determina o vencedor
-    String finalizarJogo(UUID idMesa);
+    Player finalizarJogo(Table idMesa);
 }
 
