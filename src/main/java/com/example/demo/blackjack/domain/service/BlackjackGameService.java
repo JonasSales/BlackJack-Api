@@ -23,12 +23,13 @@ public class BlackjackGameService implements BlackJackRepository {
     }
 
     public void iniciarJogo(Table mesa) {
+        mesa.iniciarJogo();
         if (mesa.getJogoIniciado()) {
             ArrayList<Player> jogadores = mesa.getJogadores();
-            // Distribuindo cartas para os jogadores
+            // Distribui duas cartas para cada jogador
             for (Player jogador : jogadores) {
                 jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
-                jogador.adicionarCarta(mesa.getDeck().distribuirCarta());
+                jogador.adicionarCarta(mesa.getDeck().distribuirCarta());  // Adiciona a segunda carta
                 jogador.calcularPontuacao();
             }
             // Definindo o primeiro jogador como o jogador atual
@@ -56,8 +57,7 @@ public class BlackjackGameService implements BlackJackRepository {
     }
 
     @Override
-    public String finalizarJogo(UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
+    public Player finalizarJogo(Table mesa) {
         if (mesa != null) {
             // Obtendo a lista de jogadores ativos (aqueles que não perderam o turno)
             List<Player> jogadoresAtivos = mesa.getJogadores().stream()
@@ -66,7 +66,8 @@ public class BlackjackGameService implements BlackJackRepository {
 
             // Se não houver jogadores ativos, significa que todos perderam
             if (jogadoresAtivos.isEmpty()) {
-                return "Todos os jogadores estouraram. Ninguém venceu.";
+                mesa.resetarMesa();  // Resetando a mesa e jogadores
+                return null;  // Retornando null, pois não há vencedor
             }
 
             // Inicializando o vencedor como o primeiro jogador ativo
@@ -78,11 +79,10 @@ public class BlackjackGameService implements BlackJackRepository {
                     vencedor = jogador;
                 }
             }
-            return "O vencedor é " + vencedor.getUser().getName() + " com " + vencedor.calcularPontuacao() + " pontos!";
+            return vencedor;  // Retornando o jogador vencedor
         }
-        return "Mesa não encontrada.";
+        return null;  // Retornando null, pois a mesa não foi encontrada
     }
-
 
     public boolean encerrarMao(Player jogador, Table mesa) {
         if (mesa != null) {
@@ -98,8 +98,7 @@ public class BlackjackGameService implements BlackJackRepository {
     }
 
 
-    public boolean verificarTodosEncerraram(UUID idMesa) {
-        Table mesa = encontrarMesaPorId(idMesa);
+    public boolean verificarTodosEncerraram(Table mesa) {
         if (mesa != null) {
             return mesa.todosJogadoresEncerraramMao();
         }
@@ -107,25 +106,21 @@ public class BlackjackGameService implements BlackJackRepository {
     }
 
     public boolean jogada(Player player, String jogada, Table mesa) {
-        System.out.println("Chegou aqui");
-        if (mesa != null) {
-            Player jogador = mesa.encontrarJogador(player);
-            if (jogador == null) {
-                return false;
-            }
-            if (jogada.equals("hit")) {
-                comprarCarta(jogador, mesa);
-                return true;
-            } else if (jogada.equals("stand")) {
-                encerrarMao(jogador, mesa);
-                return true;
-            }
+        if (mesa == null) {
+            return false;
+        }
+
+        Player jogador = mesa.encontrarJogador(player);
+        if (jogador == null) {
+            return false;
+        }
+        if (jogada.equals("hit")) {
+            comprarCarta(jogador, mesa);
+            return true;
+        } else if (jogada.equals("stand")) {
+            encerrarMao(jogador, mesa);
+            return true;
         }
         return false;
-    }
-
-
-    public Table encontrarMesaPorId(UUID id) {
-        return mesas.get(id);
     }
 }
