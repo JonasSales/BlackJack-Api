@@ -1,10 +1,6 @@
 package com.example.demo.blackjack.api.DTO;
 
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
 public class playerRequest {
     private String jogada;
 
@@ -17,4 +13,11 @@ public class playerRequest {
         this.jogada = jogada;
     }
 
+    public String getJogada() {
+        return jogada;
+    }
+
+    public void setJogada(String jogada) {
+        this.jogada = jogada;
+    }
 }

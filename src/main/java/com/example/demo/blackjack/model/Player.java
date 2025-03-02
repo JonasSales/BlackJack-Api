@@ -1,15 +1,12 @@
 package com.example.demo.blackjack.model;
 
 import com.example.demo.auth.dto.UserDTO;
-import lombok.Getter;
-import lombok.Setter;
+
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@Getter
-@Setter
 public class Player {
 
     private UserDTO user;
@@ -104,4 +101,63 @@ public class Player {
     public int hashCode() {
         return Objects.hash(getUser().getId());
     }
+
+    public UserDTO getUser() {
+        return user;
+    }
+
+    public void setUser(UserDTO user) {
+        this.user = user;
+    }
+
+    public List<Card> getMao() {
+        return mao;
+    }
+
+    public void setMao(List<Card> mao) {
+        this.mao = mao;
+    }
+
+    public boolean isPerdeuTurno() {
+        return perdeuTurno;
+    }
+
+    public void setPerdeuTurno(boolean perdeuTurno) {
+        this.perdeuTurno = perdeuTurno;
+    }
+
+    public boolean isStand() {
+        return stand;
+    }
+
+    public void setStand(boolean stand) {
+        this.stand = stand;
+    }
+
+    public boolean isJogadorAtual() {
+        return jogadorAtual;
+    }
+
+    public void setJogadorAtual(boolean jogadorAtual) {
+        this.jogadorAtual = jogadorAtual;
+    }
+
+    public int getPontuacao() {
+        return pontuacao;
+    }
+
+    public void setPontuacao(int pontuacao) {
+        this.pontuacao = pontuacao;
+    }
+
+    public boolean isJogandoAtualmente() {
+        return jogandoAtualmente;
+    }
+
+    public void setJogandoAtualmente(boolean jogandoAtualmente) {
+        this.jogandoAtualmente = jogandoAtualmente;
+    }
+
+
+
 }
