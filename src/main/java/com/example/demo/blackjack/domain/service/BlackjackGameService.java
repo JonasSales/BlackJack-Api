@@ -4,15 +4,12 @@ import com.example.demo.blackjack.model.Card;
 import com.example.demo.blackjack.model.Player;
 import com.example.demo.blackjack.model.Table;
 import com.example.demo.blackjack.domain.repository.BlackJackRepository;
-import lombok.Getter;
-import lombok.Setter;
+
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 
-@Getter
-@Setter
 @Service
 public class BlackjackGameService implements BlackJackRepository {
 
@@ -122,5 +119,14 @@ public class BlackjackGameService implements BlackJackRepository {
             return true;
         }
         return false;
+    }
+
+
+    public Map<UUID, Table> getMesas() {
+        return mesas;
+    }
+
+    public void setMesas(Map<UUID, Table> mesas) {
+        this.mesas = mesas;
     }
 }

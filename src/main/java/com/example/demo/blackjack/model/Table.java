@@ -2,7 +2,6 @@ package com.example.demo.blackjack.model;
 
 import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.blackjack.utils.ListaDuplamenteEncadeada;
-import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,10 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Setter
-@Getter
-@AllArgsConstructor
-@Builder
+
 @Component // Adiciona a anotação @Component para que o Spring gerencie essa classe
 public class Table {
 
@@ -172,4 +168,71 @@ public class Table {
     public boolean getJogoIniciado() {
         return jogoIniciado;
     }
+
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setJogadores(ListaDuplamenteEncadeada<Player> jogadores) {
+        this.jogadores = jogadores;
+    }
+
+    public Deck getDeck() {
+        return deck;
+    }
+
+    public void setDeck(Deck deck) {
+        this.deck = deck;
+    }
+
+    public boolean isJogoIniciado() {
+        return jogoIniciado;
+    }
+
+    public void setJogoIniciado(boolean jogoIniciado) {
+        this.jogoIniciado = jogoIniciado;
+    }
+
+    public Player getJogadorAtual() {
+        return jogadorAtual;
+    }
+
+    public void setJogadorAtual(Player jogadorAtual) {
+        this.jogadorAtual = jogadorAtual;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public long getTempoInicioContador() {
+        return tempoInicioContador;
+    }
+
+    public void setTempoInicioContador(long tempoInicioContador) {
+        this.tempoInicioContador = tempoInicioContador;
+    }
+
+    public int getTempoTotalContador() {
+        return tempoTotalContador;
+    }
+
+    public void setTempoTotalContador(int tempoTotalContador) {
+        this.tempoTotalContador = tempoTotalContador;
+    }
+
+    public AuthenticationService getAuthenticationService() {
+        return authenticationService;
+    }
+
+
 }

@@ -1,7 +1,9 @@
 package com.example.demo.blackjack.model;
 
+
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class Card {
     private final String naipe;
@@ -80,4 +82,7 @@ public class Card {
     public String toString() {
         return getLetra() + " de " + getNaipe();
     }
+
+
+
 }
