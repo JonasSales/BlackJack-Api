@@ -32,6 +32,8 @@ public class SecurityConfig {
                     config.setAllowedOrigins(java.util.List.of(
                             "http://localhost:3000",
                             "http://localhost:5500",
+                            "http://localhost:5501",
+                            "http://127.0.0.1:5501",
                             "http://127.0.0.1:5500")); // Domínios permitidos
                     config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE"));
                     config.setAllowCredentials(true); // Permitir envio de cookies
