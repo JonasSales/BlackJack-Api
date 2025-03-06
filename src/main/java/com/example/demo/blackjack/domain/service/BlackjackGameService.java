@@ -154,6 +154,7 @@ public class BlackjackGameService implements BlackJackRepository {
         }
 
         Player jogador = encontrarJogadorNaMesa(player, mesa);
+        mesa.setTempoInicioContador();
         return processarJogada(jogador, jogada, mesa); // Processa a jogada e retorna o resultado
     }
 
