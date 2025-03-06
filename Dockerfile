@@ -1,29 +1,11 @@
-FROM ubuntu:latest
+# Usar uma imagem base do OpenJDK 21
+FROM openjdk:21-jdk-slim
 
-# Instalar dependências para download e instalação
-RUN apt-get update && apt-get install -y \
-    wget \
-    ca-certificates \
-    tar \
-    && rm -rf /var/lib/apt/lists/*
+# Copiar o arquivo .jar gerado para o contêiner
+COPY target/baralho-0.0.1-SNAPSHOT.jar app.jar
 
-# Baixar, extrair e renomear o diretório do OpenJDK 21
-RUN wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz -P /tmp \
-    && tar -xzf /tmp/jdk-21_linux-x64_bin.tar.gz -C /opt \
-    && rm /tmp/jdk-21_linux-x64_bin.tar.gz \
-    && mv /opt/jdk* /opt/jdk-21
+# Expor a porta em que a aplicação Spring Boot vai rodar (padrão 8080)
+EXPOSE 8080
 
-# Configurar variáveis de ambiente para o Java
-ENV JAVA_HOME=/opt/jdk-21
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
-
-# Verificar se o Java foi instalado corretamente
-RUN /opt/jdk-21/bin/java -version
-
-# Criar diretório do app e copiar o .jar
-RUN mkdir /app
-WORKDIR /app
-COPY target/*.jar /app/app.jar
-
-# Comando para rodar a aplicação
-CMD ["java", "-jar", "/app/app.jar"]
+# Rodar a aplicação
+ENTRYPOINT ["java", "-jar", "/app.jar"]

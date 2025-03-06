@@ -1,6 +1,7 @@
 package com.example.demo.blackjack.domain.service;
 
 import com.example.demo.auth.service.AuthenticationService;
+import com.example.demo.blackjack.exceptions.BlackjackExceptions;
 import com.example.demo.blackjack.model.Table;
 import com.example.demo.blackjack.model.Player;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,49 +18,62 @@ public class MesaService {
     @Autowired
     public MesaService(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
-        criarNMesas();
+        criarNMesasIniciais(10); // Cria 10 mesas iniciais
     }
 
-    public Table criarMesa() {
-        Table mesa = new Table(authenticationService); // Passa o AuthenticationService para o construtor
+    // Cria uma nova mesa e a adiciona ao mapa de mesas
+    public void criarMesa() {
+        Table mesa = new Table(authenticationService);
         mesas.put(mesa.getId(), mesa);
+    }
+
+    // Encontra uma mesa pelo ID
+    public Table encontrarMesaPorId(UUID mesaId) {
+        Table mesa = mesas.get(mesaId);
+        if (mesa == null) {
+            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
+        }
         return mesa;
     }
 
-    public Table encontrarMesaPorId(UUID mesaId) {
-        return mesas.get(mesaId);
-    }
-
+    // Lista todas as mesas disponíveis
     public List<Table> listarMesas() {
         return new ArrayList<>(mesas.values());
     }
 
-    public boolean adicionarJogador(Table mesa, Player jogador) {
-        if (mesa != null) {
-            jogador.setJogandoAtualmente(true);
-            return mesa.adicionarJogador(jogador);
+    // Adiciona um jogador a uma mesa específica
+    public void adicionarJogador(Table mesa, Player jogador) {
+        if (mesa == null) {
+            throw new IllegalArgumentException("Mesa não pode ser nula.");
         }
-        return false;
+        if (jogador == null) {
+            throw new IllegalArgumentException("Jogador não pode ser nulo.");
+        }
+
+        if (jogadorEstaEmQualquerMesa(jogador)) {
+            throw new BlackjackExceptions.JogadorJaNaMesaException(jogador.getUser().getName());
+        }
+
+        jogador.setJogandoAtualmente(true);
+        mesa.adicionarJogador(jogador);
     }
 
-    private void criarNMesas(){
-        for (int i = 0; i < 10; i++) {
-            criarMesa();
-        }
-    }
-
+    // Verifica se um jogador está em qualquer mesa
     public boolean jogadorEstaEmQualquerMesa(Player jogador) {
         if (jogador == null) {
             throw new IllegalArgumentException("Jogador não pode ser nulo.");
         }
 
-        for (Table mesa : mesas.values()) {
-            for (Player p : mesa.getJogadores()) {
-                if (p.equals(jogador)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return mesas.values().stream()
+                .flatMap(mesa -> mesa.getJogadores().stream())
+                .anyMatch(p -> p.equals(jogador));
     }
+
+    // Cria um número inicial de mesas
+    private void criarNMesasIniciais(int quantidade) {
+        for (int i = 0; i < quantidade; i++) {
+            criarMesa();
+        }
+    }
+
 }

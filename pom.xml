@@ -84,12 +84,14 @@
 			<version>0.12.6</version>
 		</dependency>
 
-		<!-- Dependências de Teste -->
+		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<version>3.3.6</version>
 			<scope>test</scope>
 		</dependency>
+
 
 		<dependency>
 			<groupId>org.springframework.security</groupId>
