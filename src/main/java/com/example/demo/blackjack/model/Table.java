@@ -123,6 +123,7 @@ public class Table {
         this.jogoIniciado = false;
         this.jogadorAtual = null;
         this.jogadores = new ListaDuplamenteEncadeada<>();
+        setTempoInicioContador();
     }
 
     // Getters e Setters
@@ -183,7 +184,7 @@ public class Table {
     }
 
     public void setTempoInicioContador() {
-        this.tempoInicioContador = System.currentTimeMillis();;
+        this.tempoInicioContador = System.currentTimeMillis();
     }
 
     public long getTempoDecorrido() {
