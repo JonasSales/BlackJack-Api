@@ -1,9 +1,13 @@
 package com.example.demo.blackjack.api.DTO;
 
 import com.example.demo.auth.dto.UserDTO;
+import com.example.demo.blackjack.model.Player;
+import com.example.demo.blackjack.model.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class MesaInfoResponse {
     private UUID mesaId;
@@ -11,9 +15,20 @@ public class MesaInfoResponse {
     private int quantidadeDeJogadores;
     private boolean mesaEncerrada;
     private List<UserDTO> jogadores;
-    private UserDTO jogadorAtual;
     private long tempoInicio;
     private long tempoDecorrido;
+
+    public MesaInfoResponse(Table mesa){
+        this.mesaId = mesa.getId();
+        this.jogoIniciado = mesa.isJogoIniciado();
+        this.quantidadeDeJogadores = mesa.getJogadores().size();
+        this.mesaEncerrada = mesa.todosJogadoresEncerraramMao();
+        this.tempoInicio = mesa.getTempoInicioContador();
+        this.tempoDecorrido = mesa.getTempoDecorrido();
+        this.jogadores = mesa.getJogadores().stream()
+                .map(Player::getUser)
+                .collect(Collectors.toList());
+    }
 
     // Getters e Setters
     public UUID getMesaId() {
@@ -56,15 +71,6 @@ public class MesaInfoResponse {
         this.jogadores = jogadores;
     }
 
-
-
-    public UserDTO getJogadorAtual() {
-        return jogadorAtual;
-    }
-
-    public void setJogadorAtual(UserDTO jogadorAtual) {
-        this.jogadorAtual = jogadorAtual;
-    }
 
     public long getTempoInicio() {
         return tempoInicio;
