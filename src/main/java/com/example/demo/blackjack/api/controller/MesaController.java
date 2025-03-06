@@ -1,60 +1,47 @@
 package com.example.demo.blackjack.api.controller;
 
-import com.example.demo.auth.service.AuthenticationService;
+import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.blackjack.api.DTO.MesaInfoResponse;
 import com.example.demo.blackjack.domain.service.MesaService;
-import com.example.demo.blackjack.exceptions.BlackjackExceptions;
-import com.example.demo.blackjack.model.Table;
+import com.example.demo.blackjack.domain.service.PlayerService;
+import com.example.demo.blackjack.model.Player;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 @RestController
-@RequestMapping("/blackjack/mesasA")
+@RequestMapping("/blackjack/mesas")
 public class MesaController {
 
     private final MesaService mesaService;
-    private final AuthenticationService authenticationService;
+    private final PlayerService playerService;
 
-    public MesaController(MesaService mesaService, AuthenticationService authenticationService) {
+    public MesaController(MesaService mesaService, PlayerService playerService) {
         this.mesaService = mesaService;
-        this.authenticationService = authenticationService;
+        this.playerService = playerService;
     }
 
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> listarMesas() {
-        List<Map<String, Object>> mesasInfo = mesaService.listarMesas().stream()
-                .map(mesa -> {
-                    Map<String, Object> info = new HashMap<>();
-                    info.put("mesaId", mesa.getId());
-                    info.put("quantidadeDeJogadores", mesa.getJogadores().size());
-                    return info;
-                })
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(mesasInfo);
+    public ResponseEntity<List<MesaInfoResponse>> listarMesas() {
+        return mesaService.listarMesas();
     }
 
     @GetMapping("/{mesaId}")
     public ResponseEntity<MesaInfoResponse> acessarMesa(@PathVariable UUID mesaId) {
-        Table mesa = mesaService.encontrarMesaPorId(mesaId);
-        if (mesa == null) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
-        }
+        return mesaService.encontrarMesaPorId(mesaId);
+    }
 
-        if (authenticationService.getAuthentication(mesa.getToken()) == null) {
-            throw new BlackjackExceptions.TokenInvalidoException();
-        }
+    @GetMapping("/{mesaId}/jogadoratual")
+    public ResponseEntity<UserDTO> obterJogadorAtual(@PathVariable UUID mesaId) {
+        return mesaService.jogadorAtual(mesaId);
+    }
 
-        MesaInfoResponse response = new MesaInfoResponse(mesa);
-        return ResponseEntity.ok(response);
+    @PostMapping("/{mesaId}/adicionar")
+    public ResponseEntity<Player> adicionarJogador(@PathVariable UUID mesaId, HttpServletRequest request) {
+        return playerService.adicionarJogadorAUmaMesa(mesaId, request);
     }
 }

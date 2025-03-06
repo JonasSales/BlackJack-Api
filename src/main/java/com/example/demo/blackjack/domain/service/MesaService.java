@@ -1,13 +1,18 @@
 package com.example.demo.blackjack.domain.service;
 
+import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.service.AuthenticationService;
+import com.example.demo.blackjack.api.DTO.MesaInfoResponse;
 import com.example.demo.blackjack.exceptions.BlackjackExceptions;
 import com.example.demo.blackjack.model.Table;
 import com.example.demo.blackjack.model.Player;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+
 
 @Service
 public class MesaService {
@@ -28,34 +33,23 @@ public class MesaService {
     }
 
     // Encontra uma mesa pelo ID
-    public Table encontrarMesaPorId(UUID mesaId) {
+    public ResponseEntity<MesaInfoResponse> encontrarMesaPorId(UUID mesaId) {
         Table mesa = mesas.get(mesaId);
         if (mesa == null) {
             throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
         }
-        return mesa;
+        return new ResponseEntity<>(new MesaInfoResponse(mesa), HttpStatus.OK);
     }
 
     // Lista todas as mesas disponíveis
-    public List<Table> listarMesas() {
-        return new ArrayList<>(mesas.values());
-    }
-
-    // Adiciona um jogador a uma mesa específica
-    public void adicionarJogador(Table mesa, Player jogador) {
-        if (mesa == null) {
-            throw new IllegalArgumentException("Mesa não pode ser nula.");
+    public ResponseEntity<List<MesaInfoResponse>> listarMesas() {
+        List<Table> tables = new ArrayList<>(mesas.values());
+        List<MesaInfoResponse> mesaInfoResponses = new ArrayList<>();
+        for (Table table : tables) {
+            MesaInfoResponse mesaInfoResponse = new MesaInfoResponse(table);
+            mesaInfoResponses.add(mesaInfoResponse);
         }
-        if (jogador == null) {
-            throw new IllegalArgumentException("Jogador não pode ser nulo.");
-        }
-
-        if (jogadorEstaEmQualquerMesa(jogador)) {
-            throw new BlackjackExceptions.JogadorJaNaMesaException(jogador.getUser().getName());
-        }
-
-        jogador.setJogandoAtualmente(true);
-        mesa.adicionarJogador(jogador);
+        return new ResponseEntity<>(mesaInfoResponses, HttpStatus.OK);
     }
 
     // Verifica se um jogador está em qualquer mesa
@@ -76,4 +70,17 @@ public class MesaService {
         }
     }
 
+    public ResponseEntity<UserDTO> jogadorAtual(UUID mesaId) {
+        encontrarMesaPorId(mesaId);
+        Table mesa = mesas.get(mesaId);
+        if (mesa == null) {
+            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
+        }
+        return new ResponseEntity<>(mesa.getJogadorAtual().getUser(), HttpStatus.OK);
+    }
+
+
+    public Table retornarMesa(UUID uuid){
+        return mesas.get(uuid);
+    }
 }

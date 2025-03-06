@@ -158,6 +158,4 @@ public class Player {
         this.jogandoAtualmente = jogandoAtualmente;
     }
 
-
-
 }

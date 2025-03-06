@@ -32,16 +32,15 @@ public class Table {
         this.jogadorAtual = null;
         this.token = authenticationService.generateToken(this.id.toString());
         tempoInicioContador = System.currentTimeMillis();
+        adicionarCrupie();
         iniciarJogo();
     }
 
     // Métodos relacionados aos jogadores
-    public boolean adicionarJogador(Player jogador) {
+    public void adicionarJogador(Player jogador) {
         if (!jogoIniciado) {
-            jogadores.addLast(jogador);
-            return true;
+            jogadores.addFirst(jogador);
         }
-        return false;
     }
 
     public Player encontrarJogador(Player jogador) {
@@ -65,25 +64,20 @@ public class Table {
         return jogadoresList;
     }
 
-    // Métodos relacionados ao jogo
-    public void iniciarJogo() {
-        if (!jogadores.isEmpty()) {
-            setJogoIniciado(true);
-            deck.embaralhar();
 
-            jogadorAtual = jogadores.PeekFirst();
+    public void iniciarJogo() {
+        if (jogadores.getSize() > 1) {
+            setJogoIniciado(true);
         }
     }
 
-    public Player proximoJogador() {
+    public void proximoJogador() {
         if (!jogoIniciado || jogadores.isEmpty()) {
-            return null;
+            return;
         }
-
         if (jogadorAtual == null) {
             jogadorAtual = jogadores.PeekFirst();
         }
-
         List<ListaDuplamenteEncadeada<Player>.Nodo> nodos = jogadores.getAllNodos();
         Player jogadorAnterior = null;
 
@@ -97,12 +91,10 @@ public class Table {
 
                 jogador.setJogadorAtual(true);
                 jogadorAtual = jogador;
-                return jogadorAtual;
+                return;
             }
             jogadorAnterior = jogador;
         }
-
-        return null;
     }
 
     public boolean todosJogadoresEncerraramMao() {
@@ -110,6 +102,10 @@ public class Table {
             return false;
         }
         for (Player jogador : getJogadores()) {
+            // Ignora o Crupiê
+            if (jogador instanceof Crupie) {
+                continue;
+            }
             if (!jogador.isStand()) {
                 return false;
             }
@@ -119,11 +115,28 @@ public class Table {
 
     public void resetarMesa() {
         this.deck = new Deck(Card.criarBaralho(2));
-        this.deck.embaralhar();
         this.jogoIniciado = false;
         this.jogadorAtual = null;
         this.jogadores = new ListaDuplamenteEncadeada<>();
         setTempoInicioContador();
+        adicionarCrupie();
+    }
+
+    public void distribuirCartasIniciais() {
+        ArrayList<Player> jogadores = getJogadores();
+        Deck deck = getDeck();
+        for (Player jogador : jogadores) {
+            jogador.adicionarCarta(deck.distribuirCarta());
+            jogador.adicionarCarta(deck.distribuirCarta());
+            jogador.calcularPontuacao();
+        }
+    }
+
+    public void definirPrimeiroJogador() {
+        ArrayList<Player> jogadores = getJogadores();
+        Player primeiroJogador = jogadores.getFirst();
+        primeiroJogador.setJogadorAtual(true);
+        setJogadorAtual(primeiroJogador);
     }
 
     // Getters e Setters
@@ -189,5 +202,14 @@ public class Table {
 
     public long getTempoDecorrido() {
         return System.currentTimeMillis() - tempoInicioContador;
+    }
+
+    public Player determinarVencedor() {
+        return null;
+    }
+
+    private void adicionarCrupie(){
+        Crupie crupie = new Crupie();
+        jogadores.addLast(crupie);
     }
 }

@@ -13,9 +13,10 @@ public class Deck {
 
     public Deck(List<Card> baralho) {
         this.cards = new LinkedList<>(baralho);
+        embaralhar();
     }
 
-    public void embaralhar() {
+    private void embaralhar() {
         Collections.shuffle(cards);
     }
 
