@@ -1,15 +1,15 @@
 package com.example.demo.blackjack.api.DTO;
 
 
-public class playerRequest {
+public class PlayerRequest {
     private String jogada;
 
 
-    public playerRequest(){
+    public PlayerRequest(){
 
     }
 
-    public playerRequest( String jogada) {
+    public PlayerRequest(String jogada) {
         this.jogada = jogada;
     }
 
