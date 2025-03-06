@@ -30,11 +30,6 @@ public class Deck {
         return cards.size();
     }
 
-    public void resetDeck(List<Card> baralho) {
-        cards.clear();
-        cards.addAll(baralho);
-        embaralhar();
-    }
 
     public LinkedList<Card> getCards() {
         return cards;
