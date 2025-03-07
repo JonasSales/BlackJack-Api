@@ -118,26 +118,16 @@ public class JogoService {
     }
 
     // Finalizar o jogo e determinar o vencedor
-    public ResponseEntity<Player> finalizarJogo(UUID mesaId) {
+    public void finalizarJogo(UUID mesaId) {
         Table mesa = mesaService.retornarMesa(mesaId);
         if (mesa == null) {
             throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
         }
 
-        // Lógica para determinar o vencedor (implementar no domínio)
         Player vencedor = mesa.determinarVencedor();
+        mesa.setVencedor(vencedor.getUser());
         mesa.resetarMesa();
-        return ResponseEntity.status(HttpStatus.OK).body(vencedor);
+        ResponseEntity.status(HttpStatus.OK).body(vencedor);
     }
 
-    // Verificar se todos os jogadores encerraram suas jogadas
-    public ResponseEntity<Boolean> verificarTodosEncerraram(UUID mesaId) {
-        Table mesa = mesaService.retornarMesa(mesaId);
-        if (mesa == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body(mesa.getJogadores().stream()
-                .allMatch(Player::isStand));
-    }
 }
