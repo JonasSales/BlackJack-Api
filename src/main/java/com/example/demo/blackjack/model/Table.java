@@ -1,5 +1,6 @@
 package com.example.demo.blackjack.model;
 
+import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.blackjack.utils.ListaDuplamenteEncadeada;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ public class Table {
     private Player jogadorAtual;
     private String token;
     private long tempoInicioContador;
+    private UserDTO vencedor;
 
     private final AuthenticationService authenticationService;
 
@@ -32,6 +34,7 @@ public class Table {
         this.jogadorAtual = null;
         this.token = authenticationService.generateToken(this.id.toString());
         tempoInicioContador = System.currentTimeMillis();
+        this.vencedor = new UserDTO();
         adicionarCrupie();
         iniciarJogo();
     }
@@ -102,7 +105,6 @@ public class Table {
             return false;
         }
         for (Player jogador : getJogadores()) {
-            // Ignora o Crupiê
             if (jogador instanceof Crupie) {
                 continue;
             }
@@ -204,8 +206,35 @@ public class Table {
         return System.currentTimeMillis() - tempoInicioContador;
     }
 
+    public UserDTO getVencedor() {
+        return vencedor;
+    }
+
+    public void setVencedor(UserDTO vencedor) {
+        this.vencedor = vencedor;
+    }
+
     public Player determinarVencedor() {
-        return null;
+        if (jogadores.isEmpty()) {
+            return null; // Retorna null se não houver jogadores
+        }
+
+        Player vencedor = null;
+        int maiorPontuacao = Integer.MIN_VALUE;
+
+        ListaDuplamenteEncadeada<Player>.Nodo atual = jogadores.getHead();
+
+        while (atual != null) {
+            Player jogador = (Player) atual.getData();
+
+            if (!jogador.isPerdeuTurno() && jogador.getPontuacao() > maiorPontuacao) {
+                maiorPontuacao = jogador.getPontuacao();
+                vencedor = jogador;
+            }
+            atual = atual.getNext();
+        }
+
+        return vencedor; // Retorna o jogador com maior pontuação que não perdeu
     }
 
     private void adicionarCrupie(){
