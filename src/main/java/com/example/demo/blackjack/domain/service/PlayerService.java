@@ -2,7 +2,6 @@ package com.example.demo.blackjack.domain.service;
 
 import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.service.UserService;
-import com.example.demo.blackjack.api.DTO.PlayerRequest;
 import com.example.demo.blackjack.exceptions.BlackjackExceptions;
 import com.example.demo.blackjack.model.Card;
 import com.example.demo.blackjack.model.Player;
