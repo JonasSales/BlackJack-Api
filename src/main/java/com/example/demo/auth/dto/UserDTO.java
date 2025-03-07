@@ -15,6 +15,9 @@ public class UserDTO {
         this.email = user.getEmail();
     }
 
+    public UserDTO(){
+    }
+
     public UserDTO(String name) {
         this.name = name;
     }
