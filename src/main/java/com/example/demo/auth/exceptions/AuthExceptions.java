@@ -29,4 +29,10 @@ public class AuthExceptions {
             super(message);
         }
     }
+
+    public static class StatusNotFoundException extends RuntimeException {
+        public StatusNotFoundException(String message) {
+            super(message);
+        }
+    }
 }
