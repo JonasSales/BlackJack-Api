@@ -103,7 +103,7 @@ public class UserService {
         return getUser(username);
     }
 
-    public UserDTO adicionarMoney(Player jogador) {
+    public void jogadorVencedor(Player jogador) {
         // Obtém o usuário a partir do token
         UserDTO userDTO = jogador.getUser();
 
@@ -116,16 +116,17 @@ public class UserService {
             throw new AuthExceptions.StatusNotFoundException("Status não encontrado para o usuário");
         }
 
-        double novoMoney = status.getMoney() + 100;
-        status.setMoney(user.getStatus().getMoney());
+        status.setMoney(userDTO.getMoney() + 200);
+        status.setPartidasGanhas(userDTO.getPartidasGanhas() + 1);
+
 
         statusRepository.save(status);
 
         // Retorna o UserDTO atualizado
-        return new UserDTO(user);
+        new UserDTO(user);
     }
 
-    public void subtrairMoney(Player jogador) {
+    public void atualizarStatus(Player jogador) {
         // Obtém o usuário a partir do token
         UserDTO userDTO = jogador.getUser();
 
@@ -144,9 +145,8 @@ public class UserService {
             status.setMoney(0);
         }
 
-        // Subtrai 100 de dinheiro do status
-        double novoMoney = status.getMoney() - 100;
-        status.setMoney(novoMoney);
+        status.setMoney(status.getMoney() - 100);
+        status.setPartidasJogadas(status.getPartidasJogadas() + 1);
 
         // Salva o status atualizado no banco de dados
         statusRepository.save(status);

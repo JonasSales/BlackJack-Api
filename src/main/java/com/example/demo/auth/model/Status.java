@@ -81,8 +81,4 @@ public class Status {
         return money;
     }
 
-    public double adicionar100Money(){
-        this.money += 100;
-        return money;
-    }
 }

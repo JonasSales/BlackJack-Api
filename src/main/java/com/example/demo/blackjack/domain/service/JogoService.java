@@ -37,7 +37,7 @@ public class JogoService {
             mesa.iniciarJogo();
             mesa.distribuirCartasIniciais();
             mesa.definirPrimeiroJogador();
-            subtrairDinheiro(mesaId);
+            inicioPartida(mesaId);
         }
         ResponseEntity.status(HttpStatus.OK).body(mesa);
     }
@@ -114,7 +114,6 @@ public class JogoService {
             crupie.adicionarCarta(mesa.getDeck().distribuirCarta());
         }
         crupie.setStand(true);
-        mesa.determinarVencedor();
     }
 
     // Finalizar o jogo e determinar o vencedor
@@ -126,19 +125,23 @@ public class JogoService {
 
         Player vencedor = mesa.determinarVencedor();
         mesa.setVencedor(vencedor.getUser());
-        userService.adicionarMoney(vencedor);
+
+        if (vencedor.getClass() == Player.class) {
+            userService.jogadorVencedor(vencedor);
+        }
+
         mesa.resetarMesa();
         ResponseEntity.status(HttpStatus.OK).body(vencedor);
     }
 
-    private void subtrairDinheiro(UUID mesaId) {
+    private void inicioPartida(UUID mesaId) {
         Table mesa = mesaService.retornarMesa(mesaId);
         if (mesa == null) {
             throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
         }
         for (Player jogador: mesa.getJogadores()) {
             if (jogador.getClass() != Crupie.class){
-                userService.subtrairMoney(jogador);
+                userService.atualizarStatus(jogador);
             }
         }
     }
