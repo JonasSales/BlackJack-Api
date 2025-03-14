@@ -6,28 +6,32 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Entity
-@Table (name="tb_users")
+@Table(name = "tb_users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @NotBlank(message = "Nome não pode ser nulo")
-    String name;
+    private String name;
+
     @Column(unique = true)
     @NotBlank(message = "Email não pode ser nulo")
     @Email(message = "O email deve ser válido")
-    String email;
+    private String email;
+
     @NotBlank(message = "Uma senha precisa ser definida")
     @Size(min = 6, max = 100, message = "A senha deve ter entre 6 e 100 caracteres")
-    String password;
+    private String password;
 
     @NotBlank
-    String role = "USER"; // Valor padrão definido aqui
+    private String role = "USER";
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Status status = new Status();
 
+    // Construtor, getters e setters
     public User() {
-
     }
 
     public Long getId() {
@@ -69,5 +73,13 @@ public class User {
     public void setRole(String role) {
         this.role = role;
     }
-}
 
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+        status.setUser(this);
+    }
+}

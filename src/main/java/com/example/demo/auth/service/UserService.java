@@ -3,8 +3,11 @@ package com.example.demo.auth.service;
 import com.example.demo.auth.exceptions.AuthExceptions;
 import com.example.demo.auth.dto.AuthRequest;
 import com.example.demo.auth.dto.UserDTO;
+import com.example.demo.auth.model.Status;
 import com.example.demo.auth.model.User;
+import com.example.demo.auth.repository.StatusRepository;
 import com.example.demo.auth.repository.UserRepository;
+import com.example.demo.blackjack.model.Player;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +21,14 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository repository;
+    private final StatusRepository statusRepository;
     private final AuthenticationService authenticationService;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository repository, AuthenticationService authenticationService) {
+    public UserService(UserRepository repository, StatusRepository statusRepository, AuthenticationService authenticationService) {
         this.repository = repository;
+        this.statusRepository = statusRepository;
         this.authenticationService = authenticationService;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
@@ -96,5 +101,57 @@ public class UserService {
         String username = authentication.getName();
 
         return getUser(username);
+    }
+
+    public UserDTO adicionarMoney(Player jogador) {
+        // Obtém o usuário a partir do token
+        UserDTO userDTO = jogador.getUser();
+
+        // Busca o usuário no banco de dados
+        User user = repository.findById(userDTO.getId())
+                .orElseThrow(() -> new AuthExceptions.UserNotFoundException("Usuário não encontrado"));
+
+        Status status = user.getStatus();
+        if (status == null) {
+            throw new AuthExceptions.StatusNotFoundException("Status não encontrado para o usuário");
+        }
+
+        double novoMoney = status.getMoney() + 100;
+        status.setMoney(user.getStatus().getMoney());
+
+        statusRepository.save(status);
+
+        // Retorna o UserDTO atualizado
+        return new UserDTO(user);
+    }
+
+    public void subtrairMoney(Player jogador) {
+        // Obtém o usuário a partir do token
+        UserDTO userDTO = jogador.getUser();
+
+        // Busca o usuário no banco de dados
+        User user = repository.findById(userDTO.getId())
+                .orElseThrow(() -> new AuthExceptions.UserNotFoundException("Usuário não encontrado"));
+
+        // Busca o status do usuário
+        Status status = user.getStatus();
+        if (status == null) {
+            throw new AuthExceptions.StatusNotFoundException("Status não encontrado para o usuário");
+        }
+
+        // Verifica se o usuário tem dinheiro suficiente para subtrair
+        if (status.getMoney() < 100) {
+            status.setMoney(0);
+        }
+
+        // Subtrai 100 de dinheiro do status
+        double novoMoney = status.getMoney() - 100;
+        status.setMoney(novoMoney);
+
+        // Salva o status atualizado no banco de dados
+        statusRepository.save(status);
+
+        // Retorna o UserDTO atualizado
+        new UserDTO(user);
     }
 }
