@@ -43,7 +43,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/auth/**").permitAll()
-                                .requestMatchers("/blackjack/criarMesa").permitAll()// Permite acesso sem autenticação
+                                .requestMatchers("blackjack/status").permitAll()
+                                .requestMatchers("blackjack/money").permitAll()
+                                .requestMatchers("/blackjack/criarMesa").permitAll()
                                 .requestMatchers("/blackjack/mesas").permitAll()
                                 .requestMatchers("/blackjack/mesas/{mesaId}").permitAll()
                                 .requestMatchers("/blackjack/mesas/{mesaId}/**").permitAll()
