@@ -8,6 +8,7 @@ import com.example.demo.auth.model.User;
 import com.example.demo.auth.repository.StatusRepository;
 import com.example.demo.auth.repository.UserRepository;
 import com.example.demo.blackjack.model.Player;
+import com.example.demo.blackjack.utils.Ordenacao;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 
 @Service
@@ -87,22 +89,29 @@ public class UserService {
     // Obter usuário a partir do token
     public ResponseEntity<UserDTO> getUserFromToken(HttpServletRequest request) {
         String token = extractToken(request);
-
         if (!StringUtils.hasText(token)) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // Token ausente ou inválido
         }
 
         try {
             Authentication authentication = authenticationService.getAuthentication(token);
             if (authentication != null) {
-                return getUser(authentication.getName());
+                UserDTO user = getUser(authentication.getName()).getBody();
+                if (user != null) {
+                    return ResponseEntity.status(HttpStatus.OK).body(user);
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Usuário não encontrado
+                }
             } else {
-                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // Autenticação falhou
             }
         } catch (SignatureException | ExpiredJwtException e) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // Token inválido ou expirado
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);// Erro inesperado
         }
     }
+
 
     private String extractToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -161,5 +170,24 @@ public class UserService {
 
     public ResponseEntity<List<UserDTO>> getAllUsers(){
         return new ResponseEntity<>(repository.findAll().stream().map(UserDTO::new).collect(Collectors.toList()), HttpStatus.OK);
+    }
+
+    public ResponseEntity<List<UserDTO>> maioresGanhadores() {
+        // Obtém todos os usuários do repositório e converte para UserDTO
+        List<UserDTO> userDTOList = repository.findAll().stream()
+                .map(UserDTO::new)
+                .collect(Collectors.toList());
+
+        Ordenacao.ordenarPorVitoria(userDTOList, 0, userDTOList.size() - 1);
+        return ResponseEntity.status(HttpStatus.OK).body(userDTOList);
+    }
+
+    public ResponseEntity<List<UserDTO>> maioresMagntas(){
+        List<UserDTO> userDTOList = repository.findAll().stream()
+                .map(UserDTO::new)
+                .collect(Collectors.toList());
+
+        Ordenacao.ordenarPorMoney(userDTOList, 0, userDTOList.size() - 1);
+        return ResponseEntity.status(HttpStatus.OK).body(userDTOList);
     }
 }

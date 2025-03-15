@@ -38,7 +38,7 @@ public class UserController {
 
 	// Método para pegar o perfil do usuário autenticado
 	@GetMapping("/profile")
-	public ResponseEntity<?> getUserProfile(HttpServletRequest request) {
+	public ResponseEntity<UserDTO> getUserProfile(HttpServletRequest request) {
 			return userService.getUserFromToken(request);
 	}
 
