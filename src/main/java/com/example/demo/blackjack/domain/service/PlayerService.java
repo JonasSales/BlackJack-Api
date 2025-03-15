@@ -28,7 +28,7 @@ public class PlayerService {
     // Adicionar um jogador a uma mesa
     public ResponseEntity<Player> adicionarJogadorAUmaMesa(UUID mesaId, HttpServletRequest response) {
         Table mesa = mesaService.retornarMesa(mesaId);
-        Player jogador = new Player(userService.getUserFromToken(response));
+        Player jogador = new Player(userService.getUserFromToken(response).getBody());
         if (mesa == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(jogador);
         }
@@ -66,7 +66,7 @@ public class PlayerService {
     }
 
     public ResponseEntity<List<Card>> obterCartasDeJogadores(UUID mesaId, HttpServletRequest request) {
-        Player jogador = encontrarJogadorNaMesa(mesaId,userService.getUserFromToken(request));
+        Player jogador = encontrarJogadorNaMesa(mesaId,userService.getUserFromToken(request).getBody());
         return new ResponseEntity<>(jogador.getMao(), HttpStatus.OK);
     }
 }
