@@ -8,11 +8,18 @@ public class UserDTO {
     private Long id;
     private String name;
     private String email;
+    private int partidasTotais;
+    private int partidasGanhas;
+    private double money;
+
 
     public UserDTO(User user) {
         this.id = user.getId();
         this.name = user.getName();
         this.email = user.getEmail();
+        this.partidasGanhas = user.getStatus().getPartidasGanhas();
+        this.partidasTotais = user.getStatus().getPartidasJogadas();
+        this.money = user.getStatus().getMoney();
     }
 
     public UserDTO(){
@@ -46,5 +53,27 @@ public class UserDTO {
         this.email = email;
     }
 
+    public int getPartidasTotais() {
+        return partidasTotais;
+    }
 
+    public void setPartidasTotais(int partidasTotais) {
+        this.partidasTotais = partidasTotais;
+    }
+
+    public int getPartidasGanhas() {
+        return partidasGanhas;
+    }
+
+    public void setPartidasGanhas(int partidasGanhas) {
+        this.partidasGanhas = partidasGanhas;
+    }
+
+    public double getMoney() {
+        return money;
+    }
+
+    public void setMoney(double money) {
+        this.money = money;
+    }
 }

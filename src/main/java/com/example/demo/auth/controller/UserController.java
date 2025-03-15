@@ -7,13 +7,10 @@ import com.example.demo.auth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.example.demo.auth.exceptions.AuthExceptions;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 
 @RestController
@@ -30,41 +27,23 @@ public class UserController {
 	// Registro de novo usuário
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@RequestBody User user) {
-		try {
-			UserDTO userDTO = userService.adicionar(user);
-			return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
-		} catch (AuthExceptions.UserAlreadyExistsException e) {
-			// Retorna um JSON com a mensagem de erro
-			Map<String, String> errorResponse = new HashMap<>();
-			errorResponse.put("message", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-		}
+		return userService.adicionar(user);
 	}
 
 	// Login de usuário
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
-		try {
-			String token = userService.login(authRequest, response);
-			return ResponseEntity.ok(token); // Retorna o token em caso de sucesso
-		} catch (AuthExceptions.InvalidCredentialsException e) {
-			// Retorna um JSON com a mensagem de erro
-			Map<String, String> errorResponse = new HashMap<>();
-			errorResponse.put("message", e.getMessage());
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
-		}
+		return userService.login(authRequest, response);
 	}
-
-
 
 	// Método para pegar o perfil do usuário autenticado
 	@GetMapping("/profile")
-	public ResponseEntity<?> getUserProfile(HttpServletRequest request) {
-		try {
-			UserDTO userDTO = userService.getUserFromToken(request);
-			return ResponseEntity.ok(userDTO);
-		} catch (AuthExceptions.InvalidTokenException | AuthExceptions.UserNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-		}
+	public ResponseEntity<UserDTO> getUserProfile(HttpServletRequest request) {
+			return userService.getUserFromToken(request);
+	}
+
+	@GetMapping("/users")
+	public ResponseEntity<List<UserDTO>> getAllUsers() {
+			return userService.getAllUsers();
 	}
 }

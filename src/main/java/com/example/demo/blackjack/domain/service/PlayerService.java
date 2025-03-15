@@ -2,7 +2,6 @@ package com.example.demo.blackjack.domain.service;
 
 import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.service.UserService;
-import com.example.demo.blackjack.exceptions.BlackjackExceptions;
 import com.example.demo.blackjack.model.Card;
 import com.example.demo.blackjack.model.Player;
 import com.example.demo.blackjack.model.Table;
@@ -28,7 +27,12 @@ public class PlayerService {
     // Adicionar um jogador a uma mesa
     public ResponseEntity<Player> adicionarJogadorAUmaMesa(UUID mesaId, HttpServletRequest response) {
         Table mesa = mesaService.retornarMesa(mesaId);
-        Player jogador = new Player(userService.getUserFromToken(response));
+
+        if (response == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Player jogador = new Player(userService.getUserFromToken(response).getBody());
         if (mesa == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(jogador);
         }
@@ -42,31 +46,26 @@ public class PlayerService {
     }
 
     // Encontrar um jogador em uma mesa
-    public Player encontrarJogadorNaMesa(UUID mesaId, UserDTO userDTO) {
+    public ResponseEntity<Player> encontrarJogadorNaMesa(UUID mesaId, UserDTO userDTO) {
         Table mesa = mesaService.retornarMesa(mesaId);
         if (mesa == null) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
         Player jogador = mesa.encontrarJogador(new Player(userDTO));
         if (jogador == null) {
-            throw new BlackjackExceptions.JogadorNaoEncontradoException("Jogador não encontrado na mesa.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        return jogador;
+        return ResponseEntity.status(HttpStatus.OK).body(jogador);
     }
 
-    // Listar jogadores de uma mesa
-    public ResponseEntity<List<Player>> listarJogadores(UUID mesaId) {
-        Table mesa = mesaService.retornarMesa(mesaId);
-        if (mesa == null) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
-        }
-        return  new ResponseEntity<>(mesa.getJogadores(), HttpStatus.OK);
-    }
 
     public ResponseEntity<List<Card>> obterCartasDeJogadores(UUID mesaId, HttpServletRequest request) {
-        Player jogador = encontrarJogadorNaMesa(mesaId,userService.getUserFromToken(request));
+        Player jogador = encontrarJogadorNaMesa(mesaId,userService.getUserFromToken(request).getBody()).getBody();
+        if (jogador == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
         return new ResponseEntity<>(jogador.getMao(), HttpStatus.OK);
     }
 }
