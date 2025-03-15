@@ -62,7 +62,7 @@ public class JogoService {
             throw new BlackjackExceptions.JogoJaIniciadoException(mesaId);
         }
         mesa.setTempoInicioContador();
-        Player jogador = mesa.encontrarJogador(new Player(userService.getUserFromToken(request)));
+        Player jogador = mesa.encontrarJogador(new Player(userService.getUserFromToken(request).getBody()));
         if (jogador == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Jogador não encontrado na mesa.");
         }
