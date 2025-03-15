@@ -48,16 +48,22 @@ public class AuthenticationService {
 
     // Verifica e valida o token JWT
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(secretKey)  // Define a chave para validar o JWT
-                .build().parseSignedClaims(token).getPayload();  // Obtém os dados do corpo do JWT
-
-        String subject = claims.getSubject();  // Extrai o 'subject' do token
-
-        if (subject != null) {
-            return new UsernamePasswordAuthenticationToken(subject, null, new ArrayList<>());
+        if (token == null || token.trim().isEmpty()) {
+            return new UsernamePasswordAuthenticationToken("", "");
         }
-        return null;
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(secretKey)  // Define a chave para validar o JWT
+                    .build().parseSignedClaims(token).getPayload();  // Obtém os dados do corpo do JWT
+
+            String subject = claims.getSubject();  // Extrai o 'subject' do token
+
+            if (subject != null) {
+                return new UsernamePasswordAuthenticationToken(subject, null, new ArrayList<>());
+            }
+        } catch (Exception ignored) {
+        }
+        return new UsernamePasswordAuthenticationToken(null, null, new ArrayList<>());
     }
 
     public static class JwtUtil {
