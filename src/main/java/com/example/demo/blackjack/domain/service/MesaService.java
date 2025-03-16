@@ -4,6 +4,7 @@ import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.auth.service.AuthenticationService;
 import com.example.demo.blackjack.api.DTO.MesaInfoResponse;
 import com.example.demo.blackjack.exceptions.BlackjackExceptions;
+import com.example.demo.blackjack.model.Card;
 import com.example.demo.blackjack.model.Table;
 import com.example.demo.blackjack.model.Player;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,5 +83,15 @@ public class MesaService {
 
     public Table retornarMesa(UUID uuid){
         return mesas.get(uuid);
+    }
+
+    public ResponseEntity<Card> cartaCrupie(UUID mesaId) {
+        Table mesa = mesas.get(mesaId);
+
+        if (mesa == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(mesa.getJogadores().getLast().getMao().getFirst());
     }
 }

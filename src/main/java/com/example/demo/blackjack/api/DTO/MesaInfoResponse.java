@@ -12,7 +12,6 @@ public class MesaInfoResponse {
     private UUID mesaId;
     private boolean jogoIniciado;
     private int quantidadeDeJogadores;
-    private boolean mesaEncerrada;
     private List<UserDTO> jogadores;
     private long tempoInicio;
     private long tempoDecorrido;
@@ -22,7 +21,6 @@ public class MesaInfoResponse {
         this.mesaId = mesa.getId();
         this.jogoIniciado = mesa.isJogoIniciado();
         this.quantidadeDeJogadores = mesa.getJogadores().size();
-        this.mesaEncerrada = mesa.todosJogadoresEncerraramMao();
         this.tempoInicio = mesa.getTempoInicioContador();
         this.tempoDecorrido = mesa.getTempoDecorrido();
         this.jogadores = mesa.getJogadores().stream()
@@ -54,14 +52,6 @@ public class MesaInfoResponse {
 
     public void setQuantidadeDeJogadores(int quantidadeDeJogadores) {
         this.quantidadeDeJogadores = quantidadeDeJogadores;
-    }
-
-    public boolean isMesaEncerrada() {
-        return mesaEncerrada;
-    }
-
-    public void setMesaEncerrada(boolean mesaEncerrada) {
-        this.mesaEncerrada = mesaEncerrada;
     }
 
     public List<UserDTO> getJogadores() {

@@ -2,6 +2,7 @@ package com.example.demo.blackjack.model;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -63,6 +64,7 @@ public class Card {
                 }
             }
         }
+        embaralhar(baralho);
         return baralho;
     }
 
@@ -81,6 +83,10 @@ public class Card {
     @Override
     public String toString() {
         return getLetra() + " de " + getNaipe();
+    }
+
+    private static void embaralhar(List<Card> baralho) {
+        Collections.shuffle(baralho);
     }
 
 

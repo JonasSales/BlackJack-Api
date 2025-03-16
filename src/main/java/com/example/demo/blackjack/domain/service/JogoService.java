@@ -9,7 +9,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -43,9 +47,17 @@ public class JogoService {
     }
 
     // Realizar uma jogada (HIT ou STAND)
-    public ResponseEntity<String> realizarJogada(UUID mesaId, HttpServletRequest request, String jogada) {
+    public ResponseEntity<Map<String, Object>> realizarJogada(
+            @PathVariable UUID mesaId,
+            HttpServletRequest request,
+            @RequestParam String jogada) {
+
+        Map<String, Object> response = new HashMap<>();
+
         if (jogada == null || jogada.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Jogada não pode ser nula ou vazia.");
+            response.put("status", HttpStatus.BAD_REQUEST.value());
+            response.put("message", "Jogada não pode ser nula ou vazia.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         jogada = jogada.trim().toLowerCase();
@@ -54,17 +66,29 @@ public class JogoService {
         Table mesa = mesaService.retornarMesa(mesaId);
 
         if (mesa == null) {
-            throw new BlackjackExceptions.MesaNaoEncontradaException(mesa);
+            response.put("status", HttpStatus.BAD_REQUEST.value());
+            response.put("message", "Mesa não encontrada.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         // Verifica se o jogo já começou
         if (!mesa.isJogoIniciado()) {
-            throw new BlackjackExceptions.JogoJaIniciadoException(mesaId);
+            response.put("status", HttpStatus.BAD_REQUEST.value());
+            response.put("message", "O jogo ainda não começou.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
+
+        if (request == null) {
+            response.put("status", HttpStatus.BAD_REQUEST.value());
+        }
+
         mesa.setTempoInicioContador();
         Player jogador = mesa.encontrarJogador(new Player(userService.getUserFromToken(request).getBody()));
+
         if (jogador == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Jogador não encontrado na mesa.");
+            response.put("status", HttpStatus.BAD_REQUEST.value());
+            response.put("message", "Jogador não encontrado na mesa.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         try {
@@ -73,18 +97,35 @@ public class JogoService {
             } else if (jogada.equals("stand")) {
                 realizarJogadaStand(mesa, jogador);
             } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Jogada inválida: " + jogada);
+                response.put("status", HttpStatus.BAD_REQUEST.value());
+                response.put("message", "Jogada inválida: " + jogada);
+                response.put("jogoIniciado", mesa.isJogoIniciado());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
             // Verifica se todos os jogadores encerraram a mão
             if (mesa.todosJogadoresEncerraramMao()) {
                 realizarJogadaCrupie(mesa); // Inicia a jogada do crupiê
                 finalizarJogo(mesaId);
+                response.put("status", HttpStatus.OK.value());
+                response.put("message", "Todos encerram as mãos");
+                response.put("jogoIniciado", mesa.isJogoIniciado());
+                mesa.resetarMesa();
+                return ResponseEntity.status(HttpStatus.OK).body(response);
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body("Jogada realizada: " + jogada);
+            response.put("status", HttpStatus.OK.value());
+            response.put("message", "Jogada realizada com sucesso.");
+            response.put("jogada", jogada);
+            response.put("jogoIniciado", mesa.isJogoIniciado());
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar a jogada.");
+            response.put("status", HttpStatus.BAD_REQUEST.value());
+            response.put("message", "erro ao realizar jogada.");
+            response.put("jogada", jogada);
+            response.put("jogoIniciado", mesa.isJogoIniciado());
+            finalizarJogo(mesaId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -114,6 +155,10 @@ public class JogoService {
             crupie.adicionarCarta(mesa.getDeck().distribuirCarta());
         }
         crupie.setStand(true);
+        if (crupie.calcularPontuacao() > 21){
+            crupie.setPerdeuTurno();
+        }
+
     }
 
     // Finalizar o jogo e determinar o vencedor

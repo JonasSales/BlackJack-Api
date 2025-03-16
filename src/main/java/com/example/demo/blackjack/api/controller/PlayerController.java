@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -26,7 +27,7 @@ public class PlayerController {
 
 
     @PostMapping("/jogada")
-    public ResponseEntity<String> realizarJogada(
+    public ResponseEntity<Map<String, Object>> realizarJogada(
             @PathVariable UUID mesaId,
             HttpServletRequest request,
             @RequestBody PlayerRequest jogada) {

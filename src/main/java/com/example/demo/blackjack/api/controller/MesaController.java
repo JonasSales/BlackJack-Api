@@ -4,6 +4,7 @@ import com.example.demo.auth.dto.UserDTO;
 import com.example.demo.blackjack.api.DTO.MesaInfoResponse;
 import com.example.demo.blackjack.domain.service.MesaService;
 import com.example.demo.blackjack.domain.service.PlayerService;
+import com.example.demo.blackjack.model.Card;
 import com.example.demo.blackjack.model.Player;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,11 @@ public class MesaController {
     @GetMapping("/{mesaId}")
     public ResponseEntity<MesaInfoResponse> acessarMesa(@PathVariable UUID mesaId) {
         return mesaService.encontrarMesaPorId(mesaId);
+    }
+
+    @GetMapping("/{mesaId}/crupieCard")
+    public ResponseEntity<Card> cartaCrupie(@PathVariable UUID mesaId){
+        return mesaService.cartaCrupie(mesaId);
     }
 
     @GetMapping("/{mesaId}/jogadoratual")
