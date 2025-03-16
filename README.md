@@ -29,9 +29,9 @@ Se ultrapassar 21, perde automaticamente.
 Blackjack Natural
 
 Se um jogador fizer 21 com as duas primeiras cartas (Ás + carta de valor 10), ganha automaticamente, a menos que o crupiê também tenha Blackjack (ocorrendo empate).
-Regras de Negócio em um Sistema de Blackjack
-Se você estiver implementando um Blackjack digital, as regras de negócio devem incluir:
 
+
+Regras de Negócio em um Sistema de Blackjack
 Controle de Apostas
 
 Cada jogador deve definir sua aposta antes da rodada começar.
