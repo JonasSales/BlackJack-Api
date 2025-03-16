@@ -110,6 +110,7 @@ public class JogoService {
                 response.put("status", HttpStatus.OK.value());
                 response.put("message", "Todos encerram as mãos");
                 response.put("jogoIniciado", mesa.isJogoIniciado());
+                mesa.resetarMesa();
                 return ResponseEntity.status(HttpStatus.OK).body(response);
             }
 
