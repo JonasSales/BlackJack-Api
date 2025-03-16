@@ -2,41 +2,37 @@ package com.example.demo.blackjack.model;
 
 
 
-import java.util.Collections;
-import java.util.LinkedList;
+import com.example.demo.blackjack.utils.Pilha;
+
+
 import java.util.List;
 
 
 public class Deck {
 
-    private LinkedList<Card> cards;
+    private Pilha<Card> cards;
 
     public Deck(List<Card> baralho) {
-        this.cards = new LinkedList<>(baralho);
-        embaralhar();
-    }
-
-    private void embaralhar() {
-        Collections.shuffle(cards);
+        this.cards = new Pilha<>(baralho);
     }
 
     public Card distribuirCarta() {
         if (!cards.isEmpty()) {
-            return cards.removeFirst();  // Remove a carta do início da lista
+            return (Card) cards.pop();
         }
         return null;
     }
 
     public int tamanho() {
-        return cards.size();
+        return cards.getSize();
     }
 
 
-    public LinkedList<Card> getCards() {
+    public Pilha<Card> getCards() {
         return cards;
     }
 
-    public void setCards(LinkedList<Card> cartas) {
+    public void setCards(Pilha<Card> cartas) {
         this.cards = cartas;
     }
 

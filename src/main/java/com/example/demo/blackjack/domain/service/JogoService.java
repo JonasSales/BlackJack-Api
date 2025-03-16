@@ -113,6 +113,10 @@ public class JogoService {
         while (crupie.calcularPontuacao() < 17) {
             crupie.adicionarCarta(mesa.getDeck().distribuirCarta());
         }
+        if (crupie.calcularPontuacao() > 21){
+            crupie.setPerdeuTurno();
+            return;
+        }
         crupie.setStand(true);
     }
 

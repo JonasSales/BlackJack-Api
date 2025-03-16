@@ -1,10 +1,13 @@
 package com.example.demo.blackjack.utils;
 
-public class Pilha {
+
+import java.util.List;
+
+public class Pilha<T> {
 
 
     private  int size;
-    private  NO topo;
+    private  NO<T> topo;
 
 
     public Pilha(){
@@ -12,22 +15,26 @@ public class Pilha {
         this.topo = null;
     }
 
+    public Pilha(List<T> cards){
+        for (T card : cards) {
+            push(card);
+        }
+    }
 
 
-    public Object push(Object x) {
-        NO nodo = new NO(x);
+
+    public void push(T x) {
+        NO<T> nodo = new NO<>(x);
         nodo.next = topo;
         topo = nodo;
         size++;
-        return x;
     }
 
-    public Object pop(){
+    public T pop(){
         if (isEmpty()) {
-            System.out.println("Pilha vazia");
             return null;
         }
-        Object valor = topo.getObject();
+        T valor = topo.getData();
         topo = topo.next;
         size--;
         return valor;
@@ -39,10 +46,13 @@ public class Pilha {
 
     public Object peek(){
         if (isEmpty()) {
-            System.out.println("Pilha vazia");
             return null;
         }
-        return topo.getObject();
+        return topo.getData();
     }
 
+
+    public int getSize() {
+        return size;
+    }
 }

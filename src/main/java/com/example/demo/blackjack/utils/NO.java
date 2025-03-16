@@ -1,20 +1,26 @@
 package com.example.demo.blackjack.utils;
 
-public class NO{
-    Object object;
-    NO next;
-    NO prev;
+public class NO <T>{
+    T data;
+    NO<T> next;
+    NO<T> prev;
 
 
-    public NO(Object object){
-        this.object = object;
+    public NO(T data){
+        this.data = data;
         this.next = null;
         this.prev = null;
     }
 
-    public Object getObject() {
-        return object;
+    public T getData() {
+        return data;
     }
 
+    public NO<T> getNext() {
+        return next;
+    }
 
+    public NO<T> getPrev() {
+        return prev;
+    }
 }
