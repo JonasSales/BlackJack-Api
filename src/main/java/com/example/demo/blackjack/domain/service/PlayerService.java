@@ -66,6 +66,16 @@ public class PlayerService {
         if (jogador == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
-        return new ResponseEntity<>(jogador.getMao(), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(jogador.getMao());
+    }
+
+    public ResponseEntity<Player> sairMesa(UUID mesaId, HttpServletRequest request) {
+        Player jogador = encontrarJogadorNaMesa( mesaId,userService.getUserFromToken(request).getBody()).getBody();
+        Table mesa = mesaService.retornarMesa(mesaId);
+        if (jogador == null || mesa == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        mesa.getJogadores().remove(jogador);
+        return ResponseEntity.status(HttpStatus.OK).body(jogador);
     }
 }

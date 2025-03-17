@@ -50,4 +50,9 @@ public class MesaController {
     public ResponseEntity<Player> adicionarJogador(@PathVariable UUID mesaId, HttpServletRequest request) {
         return playerService.adicionarJogadorAUmaMesa(mesaId, request);
     }
+
+    @PostMapping("/{mesaId}/sair")
+    public ResponseEntity<Player> sairJogador(@PathVariable UUID mesaId, HttpServletRequest request) {
+        return playerService.sairMesa(mesaId,request);
+    }
 }
