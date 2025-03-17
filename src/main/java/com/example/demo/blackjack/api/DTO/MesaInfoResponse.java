@@ -16,6 +16,7 @@ public class MesaInfoResponse {
     private long tempoInicio;
     private long tempoDecorrido;
     private UserDTO vencedor;
+    private UserDTO jogadorAtual;
 
     public MesaInfoResponse(Table mesa){
         this.mesaId = mesa.getId();
@@ -27,6 +28,7 @@ public class MesaInfoResponse {
                 .map(Player::getUser)
                 .collect(Collectors.toList());
         this.vencedor = mesa.getVencedor();
+        this.jogadorAtual = mesa.getJogadorAtual().getUser();
     }
 
     // Getters e Setters
@@ -86,5 +88,13 @@ public class MesaInfoResponse {
 
     public void setVencedor(UserDTO vencedor) {
         this.vencedor = vencedor;
+    }
+
+    public UserDTO getJogadorAtual() {
+        return jogadorAtual;
+    }
+
+    public void setJogadorAtual(UserDTO jogadorAtual) {
+        this.jogadorAtual = jogadorAtual;
     }
 }

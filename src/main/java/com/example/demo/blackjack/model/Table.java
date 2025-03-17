@@ -31,7 +31,7 @@ public class Table {
         this.jogadores = new ListaDuplamenteEncadeada<>();
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
-        this.jogadorAtual = null;
+        this.jogadorAtual = new Player();
         this.token = authenticationService.generateToken(this.id.toString());
         tempoInicioContador = System.currentTimeMillis();
         this.vencedor = new UserDTO();
@@ -78,8 +78,8 @@ public class Table {
         if (!jogoIniciado || jogadores.isEmpty()) {
             return;
         }
-        if (jogadorAtual == null) {
-            jogadorAtual = jogadores.PeekFirst();
+        if (jogadorAtual.getUser() == null) {
+            setJogadorAtual(jogadores.PeekFirst());
         }
         List<ListaDuplamenteEncadeada<Player>.Nodo> nodos = jogadores.getAllNodos();
         Player jogadorAnterior = null;
@@ -93,7 +93,7 @@ public class Table {
                 }
 
                 jogador.setJogadorAtual(true);
-                jogadorAtual = jogador;
+                setJogadorAtual(jogador);
                 return;
             }
             jogadorAnterior = jogador;
@@ -118,7 +118,7 @@ public class Table {
     public void resetarMesa() {
         this.deck = new Deck(Card.criarBaralho(2));
         this.jogoIniciado = false;
-        this.jogadorAtual = null;
+        this.jogadorAtual = new Player();
         this.jogadores = new ListaDuplamenteEncadeada<>();
         setTempoInicioContador();
         adicionarCrupie();
